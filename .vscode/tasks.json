@@ -1,0 +1,25 @@
+{
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "cmake",
+      "command": "/usr/bin/cmake",
+      "args": [
+        "--build",
+        "${workspaceRoot}/build",
+        "--config",
+        "Debug",
+        "--target",
+        "all",
+        "--",
+        "-j",
+        "10"
+        // "DBUILD_TESTS=ON"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      }
+    }
+  ],
+  "version": "2.0.0"
+}

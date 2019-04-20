@@ -1,0 +1,5 @@
+# Build results
+build/
+
+# vscode cache files
+.vscode/ipch/
