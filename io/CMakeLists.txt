@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 2.8.11)
+project(io)
+
+# Target
+set(IO_SRCS
+    src/AsyncSerial.cpp
+    src/DataProtocol.cpp
+    include/AsyncSerial.h
+    include/DataProtocol.h)
+
+add_library(${PROJECT_NAME} ${IO_SRCS})
+
+# Link libraries
+set(BOOST_LIBS date_time system)
+find_package(Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME}
+  ${Boost_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT})
+  
+# Build tests
+if (BUILD_TESTS) 
+  enable_testing()
+  set(TEST_PROJECT_NAME ${PROJECT_NAME}_test)
+  add_executable(${TEST_PROJECT_NAME}
+    test/test_main.cpp
+    test/DataProtocol_test.cpp)
+  target_link_libraries(${TEST_PROJECT_NAME}
+    gtest
+    ${PROJECT_NAME})
+  add_test(NAME ${TEST_PROJECT_NAME} COMMAND ${TEST_PROJECT_NAME})
+endif()
