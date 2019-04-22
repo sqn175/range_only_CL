@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION ${MIN_CMAKE_VERSION})
 project(io)
 
 # Target
@@ -11,12 +11,14 @@ set(IO_SRCS
 add_library(${PROJECT_NAME} ${IO_SRCS})
 
 # Link libraries
-set(BOOST_LIBS date_time system)
+set(BOOST_LIBS system)
 find_package(Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT})
+target_include_directories(${PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/include)
   
 # Build tests
 if (BUILD_TESTS) 

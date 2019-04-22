@@ -63,7 +63,6 @@ class Measurements {
     void push_back_ImuData(const ImuData& data);
     void push_back_WheelData(const WheelData& data);
     void push_back_UwbData(const UwbData& data);
-  private:
     std::map<int, std::list<ImuData>>                 imuMeasurement_;
     std::map<int, std::list<WheelData>>               wheelMeasurement_;
     std::map<std::pair<int, int>, std::list<UwbData>> uwbMeasurement_;
@@ -75,6 +74,8 @@ class MessageParser {
     void pushData(const char* data, unsigned int len);
 
     void popMsgs();
+    Measurements measurements_;
+
   private:
     bool popUntilHeader();
 
@@ -84,7 +85,6 @@ class MessageParser {
     void pop_front(unsigned int len);
     // Inner circular buffer to store the incoming binary messages
     boost::circular_buffer<char> cBuf_;
-    Measurements measurements_;
 };
 
 

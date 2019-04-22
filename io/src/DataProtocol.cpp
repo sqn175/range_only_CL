@@ -1,5 +1,7 @@
 #include "DataProtocol.h"
 
+#include <iostream>
+
 Measurements::Measurements() {
 
 }
@@ -11,7 +13,7 @@ void Measurements::push_back_WheelData(const WheelData& data) {
 }
 void Measurements::push_back_UwbData(const UwbData& data) {
   std::pair<int,int> key = std::make_pair(data.anchorId1, data.anchorId2);
-  uwbMeasurement_.at(key) = std::list<UwbData>(1);
+  uwbMeasurement_[key].push_back(data);
 }
 
 
@@ -27,16 +29,21 @@ MessageParser::MessageParser()
 
 void MessageParser::popMsgs() {
   while(popUntilHeader()) {
-    // we find the header, then we extract the payload measurements
+    // Incomplete message only containing a header
+    if (cBuf_.size() <= MSG_HEAD_LEN) 
+      return;
+
+    // If the header is found, we then extract the payload length
     int payloadLen = cBuf_.at(INDEX_MSG_PAYLOAD_LEN);
 
     // Not a complete message
-    if (cBuf_.size() < payloadLen + INDEX_MSG_TYPE)
-      break;
+    if (cBuf_.size() < INDEX_MSG_TYPE + payloadLen + MSG_TAIL_LEN)
+      return;
 
     // Bad tail
     if (cBuf_.at(payloadLen + INDEX_MSG_TYPE) != (char)0xDD) {
       // TODO: add log
+      std::cout << "Wrong tail" << std::endl;
       pop_front(1);
       continue;
     }
@@ -60,7 +67,7 @@ void MessageParser::popMsgs() {
       }
       default:
         // throw();TODO: add log
-        int test3 = 0;
+        std::cout << "Wrong message type: " << msgType << std::endl;
     }
   }
 }
@@ -94,15 +101,18 @@ T MessageParser::parseData(int payloadLen) {
   pop_front(INDEX_MSG_DATA);
   int dataLen = payloadLen - (INDEX_MSG_TYPE - INDEX_MSG_PAYLOAD_LEN);
   // Be sure this is a little endian system, otherwise we will get the wrong parsing results
-  for (int i = 0; i < dataLen - 1; ++i) {
+  for (int i = 0; i < dataLen; ++i) {
     memcpy((char*)&t+i, &cBuf_.at(i), 1);
   }
-  pop_front(dataLen);
+  pop_front(dataLen + MSG_TAIL_LEN);
   return t;
 }
 
 void MessageParser::pop_front(unsigned int len) {
   for (int i = 0; i < len; ++i) {
+    if (cBuf_.empty()) {
+      std::cout<<"empty buf" << std::endl;
+    }
     cBuf_.pop_front();
   }
 }
