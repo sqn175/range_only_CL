@@ -25,9 +25,10 @@ download_project(PROJ               eigen3
 )
 
 # Build local dependencies
-add_subdirectory(io)
-
 add_subdirectory(sensor_fusion)
+
+add_subdirectory(io)
+add_dependencies(io sensor_fusion)
 
 # Build the app
 add_executable(${PROJECT_NAME}_app apps/src/main.cpp)

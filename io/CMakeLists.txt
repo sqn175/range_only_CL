@@ -4,19 +4,20 @@ project(io)
 # Target
 set(IO_SRCS
     src/AsyncSerial.cpp
-    src/DataProtocol.cpp
-    include/AsyncSerial.h
-    include/DataProtocol.h)
-
-add_library(${PROJECT_NAME} ${IO_SRCS})
+    src/DataProtocol.cpp)
 
 # Link libraries
 set(BOOST_LIBS system)
 find_package(Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package(Threads REQUIRED)
-target_link_libraries(${PROJECT_NAME}
+
+add_library(${PROJECT_NAME} ${IO_SRCS})
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
   ${Boost_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT})
+  ${CMAKE_THREAD_LIBS_INIT}
+  sensor_fusion)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include)
   

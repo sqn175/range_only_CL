@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Measurement.h"
+
 #include <boost/circular_buffer.hpp>
 
 #include <cstdint>
 #include <ctime>
-#include <map>
-#include <list>
-#include <utility>
+#include <vector>
+#include <memory>
 
 // The byte index of the binary message
 #define INDEX_MSG_HEADER       0
@@ -57,24 +58,12 @@ using UwbData = struct {
 };
 #pragma pack(pop)
 
-class Measurements {
-  public:
-    Measurements();
-    void push_back_ImuData(const ImuData& data);
-    void push_back_WheelData(const WheelData& data);
-    void push_back_UwbData(const UwbData& data);
-    std::map<int, std::list<ImuData>>                 imuMeasurement_;
-    std::map<int, std::list<WheelData>>               wheelMeasurement_;
-    std::map<std::pair<int, int>, std::list<UwbData>> uwbMeasurement_;
-};
-
 class MessageParser {
   public:
     MessageParser();
     void pushData(const char* data, unsigned int len);
 
-    void popMsgs();
-    Measurements measurements_;
+    std::vector<measBasePtr> popMsgs();
 
   private:
     bool popUntilHeader();

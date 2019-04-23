@@ -2,21 +2,6 @@
 
 #include <iostream>
 
-Measurements::Measurements() {
-
-}
-void Measurements::push_back_ImuData(const ImuData& data) {
-  imuMeasurement_[data.anchorId].push_back(data);
-}
-void Measurements::push_back_WheelData(const WheelData& data) {
-  wheelMeasurement_[data.anchorId].push_back(data);
-}
-void Measurements::push_back_UwbData(const UwbData& data) {
-  std::pair<int,int> key = std::make_pair(data.anchorId1, data.anchorId2);
-  uwbMeasurement_[key].push_back(data);
-}
-
-
 MessageParser::MessageParser()
     : cBuf_(boost::circular_buffer<char>(1024)) {
   }
@@ -27,18 +12,19 @@ MessageParser::MessageParser()
     }
   }
 
-void MessageParser::popMsgs() {
+std::vector<measBasePtr> MessageParser::popMsgs() {
+  std::vector<measBasePtr> measurements;
   while(popUntilHeader()) {
     // Incomplete message only containing a header
     if (cBuf_.size() <= MSG_HEAD_LEN) 
-      return;
+      return measurements;
 
     // If the header is found, we then extract the payload length
     int payloadLen = cBuf_.at(INDEX_MSG_PAYLOAD_LEN);
 
     // Not a complete message
     if (cBuf_.size() < INDEX_MSG_TYPE + payloadLen + MSG_TAIL_LEN)
-      return;
+      return measurements;
 
     // Bad tail
     if (cBuf_.at(payloadLen + INDEX_MSG_TYPE) != (char)0xDD) {
@@ -52,17 +38,34 @@ void MessageParser::popMsgs() {
     switch (msgType) {
       case MSG_TYPE_IMU : {
         ImuData data = parseData<ImuData>(payloadLen);
-        measurements_.push_back_ImuData(data);
+
+        double t = data.timeStamp / 1000.0; // Convert ms to seconds
+        double acc[3];
+        double gyro[3];
+        for (int i = 0; i < 3; ++i) {
+          acc[i] = data.acc[i] / 8192.0;
+          gyro[i] = data.gyro[i] / 131.072;
+        }
+        auto imuM = std::make_shared<ImuMeasurement>(data.anchorId, t, acc, gyro);
+        measurements.push_back(imuM);
         break;
       }
       case MSG_TYPE_WHEEL : {
         WheelData data = parseData<WheelData>(payloadLen);
-        measurements_.push_back_WheelData(data);
+
+        double t = data.timeStamp / 1000.0; 
+        double v = (double)data.dx / (double)data.interval * 1000.0;
+        double omega = (double)data.dphi / (double)data.interval * 1000.0;
+        auto wheelM = std::make_shared<WheelMeasurement>(data.anchorId, t, v, omega);
+        measurements.push_back(wheelM);
         break;
       }
       case MSG_TYPE_UWB : {
         UwbData data = parseData<UwbData>(payloadLen);
-        measurements_.push_back_UwbData(data);
+
+        double t = data.timeStamp / 1000.0; 
+        auto uwbM = std::make_shared<UwbMeasurement>(t, data.anchorId1, data.anchorId2, data.range);
+        measurements.push_back(uwbM);
         break;
       }
       default:
@@ -70,6 +73,8 @@ void MessageParser::popMsgs() {
         std::cout << "Wrong message type: " << msgType << std::endl;
     }
   }
+
+  return measurements;
 }
 
 bool MessageParser::popUntilHeader() {

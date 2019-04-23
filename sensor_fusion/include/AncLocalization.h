@@ -39,9 +39,23 @@ MatrixXd ICP(MatrixXd coor_r, MatrixXd coor_ap, VectorXd ap_index);
 	- converge: Converge parameter.
 	- iter: Maximun umber of iterations.
 
+  Input example:
+		M =	[0.0  r01  r02  r03 
+				 r10  0.0  r12  r13
+			   r20  r21  0.0  r23
+				 r30  r31  r32  0.0]
+		r01 is the range between 0 and 1, and here we assume that 0 is at the origin,
+		and 1 lies along the positive x-axis, and 2 the positive y direction.
+
 	Outputs:
 	- Coordinates of nodes in the network, of shape (N, 2) if 2D
-	  or (N, 3) if 3D.                                           */
+	  or (N, 3) if 3D. 
+
+	Output example:
+		coor = [x0, y0, z0
+						x1, y1, z1
+						x2, y2, z2
+						x3, y3, z3]                                          */
 MatrixXd MDS_Adam(MatrixXd M, int dim, double converge, int iter=500);
 
 /*  Compute anchor 3D location by MDS initialization and Adam gradient descent
@@ -64,5 +78,7 @@ MatrixXd MDS_Adam(MatrixXd M, int dim, double converge, int iter=500);
 
 	Outputs:
 	-  Node locations, of shape (N, 3), where ith row is node i's
-		   coordinate (x_i, y_i, z_i).                                */
+		   coordinate (x_i, y_i, z_i).                                
+			 
+			 */
 MatrixXd AncSelfLocalize(MatrixXd M, VectorXd height, VectorXd index);
