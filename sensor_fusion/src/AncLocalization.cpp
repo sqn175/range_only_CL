@@ -26,6 +26,7 @@ MatrixXd MDS_Adam(MatrixXd M, int dim, double converge, int nIterations)
 	MatrixXd v = MatrixXd::Zero(n, dim);
 
 	MatrixXd coor = MDS(M, dim);
+
 	RowVectorXd firstrow = coor.row(0);
 	coor.rowwise() -= firstrow;
 

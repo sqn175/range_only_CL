@@ -14,9 +14,20 @@ set(CMAKE_CXX_STANDARD 11)
 # Option for build configuration
 option (BUILD_TESTS "Builds all gtests" ON) 
 
-# Download Eigen 3.3.6 
+# Plugin in download script to add externerl project
 include(${CMAKE_SOURCE_DIR}/cmake/DownloadProject.cmake)
 
+# Download google glog 0.4.0
+download_project(PROJ                glog
+                GIT_REPOSITORY       https://github.com/google/glog.git
+                GIT_TAG              v0.4.0
+                PREFIX              ${CMAKE_BINARY_DIR}/third_party/glog
+                UPDATE_DISCONNECTED 1
+)
+# Build glog directly from the download subdirectory
+add_subdirectory(${glog_SOURCE_DIR})
+
+# Download Eigen 3.3.6 
 download_project(PROJ               eigen3
                 HG_REPOSITORY       https://bitbucket.org/eigen/eigen/
                 HG_TAG              3.3.6
@@ -26,17 +37,18 @@ download_project(PROJ               eigen3
 
 # Build local dependencies
 add_subdirectory(sensor_fusion)
+add_dependencies(sensor_fusion glog)
 
 add_subdirectory(io)
 add_dependencies(io sensor_fusion)
 
 # Build the app
-add_executable(${PROJECT_NAME}_app apps/src/main.cpp)
-target_include_directories(${PROJECT_NAME}_app PRIVATE
+add_executable(${PROJECT_NAME}_sync_app apps/src/sync_app_main.cpp)
+target_include_directories(${PROJECT_NAME}_sync_app PRIVATE
   io/include
   sensor_fusion/include)
 # Link libraties
-target_link_libraries(${PROJECT_NAME}_app
+target_link_libraries(${PROJECT_NAME}_sync_app
   io
   sensor_fusion)
 

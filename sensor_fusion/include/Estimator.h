@@ -1,31 +1,40 @@
 #pragma once
 
-#include "States.h"
-#include "EnergyDetector.h"
+#include "Robot.h"
+#include "Measurement.h"
 
-#include <Eigen/Dense>
+#include "Eigen/Dense"
 
 #include <map>
 #include <list>
-#include <set>
 #include <memory>
+#include <set>
+#include <queue>
+#include <utility>
+
+using NoiseParams = struct {
+  double sigmaVel;
+  double sigmaOmega;
+  double sigmaRange;
+  double sigmaHeading;
+};
 
 class Estimator {
   public:
     Estimator();
 
-    void AddMeasurement(const measBasePtr& measurement);
-    void Estimate();
-
-    bool PositionInitializer(const measBasePtr& measurement);
+    void process(const measBasePtr& m);
+    void init();
 
   private:
-    bool positionInitialized_; // The position of the UWB anchors are initialized.
-    bool poseInitialized_;     // The pose of the moving UWB anchors are initialized.
-    
-    std::set<EnergyDetector> energyDetectors_; 
+    std::set<Robot> robots_;
+    int nRobot_;
 
-    std::map<int, States> states_;
-
-
-}
+    // Error state Kalman filter stuff
+    Eigen::MatrixXd Q_;
+    Eigen::MatrixXd Phi_;
+    Eigen::MatrixXd R_;
+    std::map<int, double> lastV_;
+    std::map<int, double> lastOmega_;
+    std::map<std::pair<int, int>, std::queue<double>> pastRanges_;
+};

@@ -46,7 +46,7 @@ std::vector<measBasePtr> MessageParser::popMsgs() {
           acc[i] = data.acc[i] / 8192.0;
           gyro[i] = data.gyro[i] / 131.072;
         }
-        auto imuM = std::make_shared<ImuMeasurement>(data.anchorId, t, acc, gyro);
+        measBasePtr imuM = std::make_shared<ImuMeasurement>(data.uwbId, t, acc, gyro);
         measurements.push_back(imuM);
         break;
       }
@@ -56,15 +56,21 @@ std::vector<measBasePtr> MessageParser::popMsgs() {
         double t = data.timeStamp / 1000.0; 
         double v = (double)data.dx / (double)data.interval * 1000.0;
         double omega = (double)data.dphi / (double)data.interval * 1000.0;
-        auto wheelM = std::make_shared<WheelMeasurement>(data.anchorId, t, v, omega);
+        measBasePtr wheelM = std::make_shared<WheelMeasurement>(data.uwbId, t, v, omega);
         measurements.push_back(wheelM);
         break;
       }
       case MSG_TYPE_UWB : {
         UwbData data = parseData<UwbData>(payloadLen);
 
-        double t = data.timeStamp / 1000.0; 
-        auto uwbM = std::make_shared<UwbMeasurement>(t, data.anchorId1, data.anchorId2, data.range);
+        double t = data.timeStamp / 1000.0;
+
+        // Calibration of UWB broadcast two way ranging results.
+        // Here we simply add a constant bias, a more complex calibration model will be utilized.
+        double range = data.range + 0.5158; // TODO: range calibration parameters 
+
+        // TODO: add simple outlier rejection
+        measBasePtr uwbM = std::make_shared<UwbMeasurement>(t, data.uwbId1, data.uwbId2, range);
         measurements.push_back(uwbM);
         break;
       }

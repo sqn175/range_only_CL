@@ -34,7 +34,7 @@ static const unsigned int MSG_TAIL_LEN = sizeof(MSG_TAIL) / sizeof(char);
 // IMU data
 using ImuData = struct {
   uint32_t timeStamp; // ms
-  uint8_t anchorId;  // Which anchor send this message
+  uint8_t uwbId;  // Which anchor send this message
   uint16_t acc[3];   // accelerometers, [x,y,z]: real = acc/8192*m/s^2
   uint16_t gyro[3];  // gyroscopes, [x,y,z]: real = gyro/131.072*rad/s
 };
@@ -42,7 +42,7 @@ using ImuData = struct {
 // Wheel encoder data
 using WheelData = struct {
   uint32_t timeStamp;
-  uint8_t anchorId;
+  uint8_t uwbId;
   uint8_t interval;
   float dx;         // m
   float dy;         // m
@@ -52,8 +52,8 @@ using WheelData = struct {
 // UWB ranging data
 using UwbData = struct {
   uint32_t timeStamp;
-  uint8_t anchorId1;
-  uint8_t anchorId2;
+  uint8_t uwbId1;
+  uint8_t uwbId2;
   double range;       // m
 };
 #pragma pack(pop)

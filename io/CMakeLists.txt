@@ -16,10 +16,12 @@ add_library(${PROJECT_NAME} ${IO_SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
-  sensor_fusion)
+  sensor_fusion
+  glog)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-  ${CMAKE_CURRENT_LIST_DIR}/include)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include
+  PUBLIC ${glog_SOURCE_DIR} ${glog_BINARY_DIR})
   
 # Build tests
 if (BUILD_TESTS) 

@@ -4,14 +4,20 @@ project(sensor_fusion)
 set(SENSOR_FUSION_SRCS
   src/States.cpp
   src/AncLocalization.cpp
+  src/Initializer.cpp
+  src/Estimator.cpp
+  src/Robot.cpp
 )
 
-# include_directories("/home/qin/Documents/range_only_CL/build/third_party/eigen3/eigen3-src/Eigen")
-
 add_library(${PROJECT_NAME} ${SENSOR_FUSION_SRCS})
-target_include_directories(${PROJECT_NAME} PUBLIC
-  ${CMAKE_CURRENT_LIST_DIR}/include
-  ${eigen3_SOURCE_DIR})
+
+target_include_directories(${PROJECT_NAME}
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include
+  PUBLIC ${eigen3_SOURCE_DIR}
+  PUBLIC ${glog_SOURCE_DIR} ${glog_BINARY_DIR})
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC glog)
 
 # Build tests
 if (BUILD_TESTS) 
@@ -20,7 +26,8 @@ if (BUILD_TESTS)
   add_executable(${TEST_PROJECT_NAME}
     test/test_main.cpp
     test/States_test.cpp
-    test/AncLocalization_test.cpp)
+    test/AncLocalization_test.cpp
+    test/EnergyDetector_test.cpp)
   target_link_libraries(${TEST_PROJECT_NAME}
     gtest
     ${PROJECT_NAME})
