@@ -20,20 +20,20 @@ void PositionInitializer::AddMeasurement(const measBasePtr& m) {
     case MeasurementType::WHEEL : {
       wheelMeasReceived_ = true;
       auto wheelMeasPtr = std::dynamic_pointer_cast<WheelMeasurement>(m);
-      auto it = velEnergy_.find(wheelMeasPtr->uwbId_);
+      auto it = velEnergy_.find(wheelMeasPtr->uwbId);
       if ( it == velEnergy_.end()) {
         // We insert a new Energy object which do not use default constructor
-        velEnergy_[wheelMeasPtr->uwbId_] = Energy<double>(2);
-        robotIds_.insert(wheelMeasPtr->uwbId_);
-        LOG(INFO) << "Found a robot with id: " << wheelMeasPtr->uwbId_;
+        velEnergy_[wheelMeasPtr->uwbId] = Energy<double>(2);
+        robotIds_.insert(wheelMeasPtr->uwbId);
+        LOG(INFO) << "Found a robot with id: " << wheelMeasPtr->uwbId;
       }
-      velEnergy_[wheelMeasPtr->uwbId_].push_back(wheelMeasPtr->v_);
+      velEnergy_[wheelMeasPtr->uwbId].push_back(wheelMeasPtr->v);
       break;
     }
     case MeasurementType::UWB : {
       auto uwbMeasPtr = std::dynamic_pointer_cast<UwbMeasurement>(m);
-      auto& idPair = uwbMeasPtr->uwbPair_;
-      meanRange_[idPair].push_back(uwbMeasPtr->range_);
+      auto& idPair = uwbMeasPtr->uwbPair;
+      meanRange_[idPair].push_back(uwbMeasPtr->range);
       if (uwbIds_.find(idPair.first) == uwbIds_.end()) {
         LOG(INFO) << "Found a UWB anchor with id: " << std::to_string(idPair.first);
         uwbIds_.insert(idPair.first);
@@ -44,7 +44,7 @@ void PositionInitializer::AddMeasurement(const measBasePtr& m) {
       }
 
       LOG_EVERY_N(INFO, 1) << "[" << std::to_string(idPair.first) << "," 
-            << std::to_string(idPair.second) << "]: " << uwbMeasPtr->range_ << "m";
+            << std::to_string(idPair.second) << "]: " << uwbMeasPtr->range << "m";
       break;
     }
     default: {

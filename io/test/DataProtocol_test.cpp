@@ -40,17 +40,17 @@ TEST(DataProtocolTest, parserFile) {
         switch (m->type_) {
           case MeasurementType::IMU : {
             auto imuMeasPtr = std::dynamic_pointer_cast<ImuMeasurement>(m);
-            imuMeas[imuMeasPtr->uwbId_].push_back(imuMeasPtr);
+            imuMeas[imuMeasPtr->uwbId].push_back(imuMeasPtr);
             break;
           }
           case MeasurementType::WHEEL : {
             auto wheelMeasPtr = std::dynamic_pointer_cast<WheelMeasurement>(m);
-            wheelMeas[wheelMeasPtr->uwbId_].push_back(wheelMeasPtr);
+            wheelMeas[wheelMeasPtr->uwbId].push_back(wheelMeasPtr);
             break;
           }
           case MeasurementType::UWB : {
             auto uwbMeasPtr = std::dynamic_pointer_cast<UwbMeasurement>(m);
-            uwbMeas[uwbMeasPtr->uwbPair_].push_back(uwbMeasPtr);
+            uwbMeas[uwbMeasPtr->uwbPair].push_back(uwbMeasPtr);
             break;
           }
           default: {
@@ -66,6 +66,6 @@ TEST(DataProtocolTest, parserFile) {
   ASSERT_EQ(wheelMeas.size(), 2);
 
   ASSERT_EQ(uwbMeas.begin()->second.size(), 20935);
-  ASSERT_NEAR(uwbMeas.begin()->second[0]->range_, 0.405035292508921, 1e-10);
-  ASSERT_NEAR(uwbMeas.begin()->second[10268]->range_, 0.779440403886972, 1e-10);
+  ASSERT_NEAR(uwbMeas.begin()->second[0]->range, 0.405035292508921, 1e-10);
+  ASSERT_NEAR(uwbMeas.begin()->second[10268]->range, 0.779440403886972, 1e-10);
 }

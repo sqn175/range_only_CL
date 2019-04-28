@@ -23,6 +23,7 @@ void CLSystem::process(const measBasePtr& m) {
     }
   } else if (!poseInitialized_) {
      // If position initialized, but orientation not initialized
+     estimator_.init();
   } else {
     // ESKF update and correct
     estimator_.process(m);

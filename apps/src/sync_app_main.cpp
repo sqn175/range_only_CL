@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     parser.pushData(data, dataFile.gcount());
     auto m = parser.popMsgs();
     for (auto& i : m) {
-      VLOG(4) << "Receive measurement: " << i->type_ << ", t: " << i->timeStamp_; 
+      VLOG(4) << "Receive measurement: " << i->type_ << ", t: " << i->timeStamp; 
       estimator.Estimate(i);
     }
     

@@ -23,13 +23,14 @@ class States {
                               double v1, double omega1, 
                               double deltaSec, bool calPhi);
     void correct(const Eigen::Vector3d& delta);
-
-  private:
-    States dot(const double& v, const double& omega);
-    Eigen::Matrix3d& jacobian(const double& v, const double& omega);
+    
+  public:
     double x_;   // x (meter) coordinate in world reference
     double y_;   // y (meter) coordinate in world reference
     double phi_; // orientation (rad)
+  private:
+    States dot(const double& v, const double& omega);
+    Eigen::Matrix3d& jacobian(const double& v, const double& omega);
 };
 
 inline States operator+(States lhs, const States& rhs) {
