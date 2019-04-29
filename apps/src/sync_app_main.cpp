@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     auto m = parser.popMsgs();
     for (auto& i : m) {
       VLOG(4) << "Receive measurement: " << i->type_ << ", t: " << i->timeStamp; 
-      estimator.Estimate(i);
+      estimator.process(i);
     }
     
   }

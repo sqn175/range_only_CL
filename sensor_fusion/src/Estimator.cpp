@@ -8,6 +8,31 @@
 Estimator::Estimator() {
 }
 
+void Estimator::init(const NoiseParams& noises, std::map<int, Robot> iniRobots, 
+              std::map<int, Eigen::Vector2d> anchorPositions, double deltaSec) {
+  robots_ = std::move(iniRobots);
+  anchorPositions_ = std::move(anchorPositions);
+
+  nRobot_ = robots_.size();
+  nAnchor_ = anchorPositions_.size();
+  nUwb_ = nRobot_ + anchorPositions_.size();
+  nRange_ = uwbMeasBuffer_.size() - nAnchor_ * (nAnchor_ - 1) / 2; // Ignore anchor-anchor range measurements
+
+  P_ = Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_);
+  Eigen::VectorXd singleQ;
+  singleQ << noises.sigmaV * noises.sigmaV,
+             noises.sigmaV * noises.sigmaV,
+             noises.sigmaOmega * noises.sigmaOmega;
+  Q_ = (singleQ.replicate(1, nRobot_)).asDiagonal();
+  R_ = (Eigen::VectorXd::Ones(nRange_) * noises.sigmaRange * noises.sigmaRange).asDiagonal();
+  Phi_ = Eigen::MatrixXd::Zero(3*nRobot_, 3*nRobot_);
+  for (int i = 0; i < nRobot_; ++i) {
+    Phi_.block<3,3>(3*i, 3*i) = Eigen::MatrixXd::Identity(3,3); // TODO: this is an eye matrix
+  }
+
+  deltaSec_ = deltaSec;
+}
+
 void Estimator::process(const measBasePtr& m) {
  switch (m->type_) {
     case MeasurementType::IMU : {
@@ -20,39 +45,39 @@ void Estimator::process(const measBasePtr& m) {
       auto id = wheelMeasPtr->uwbId;
       double deltaSec = wheelMeasPtr->timeStamp - lastWheelMeas_[id]->timeStamp;
       // 1. ESKF predict 
+      // 1.1 State propagation
       robots_[id].state_.propagate(lastWheelMeas_[id]->v, lastWheelMeas_[id]->omega,
                                     wheelMeasPtr->v, wheelMeasPtr->omega, deltaSec, false);
 
       statesPropagated_[id] = true;
       lastWheelMeas_[id] = wheelMeasPtr;
+
       break;
     }
     case MeasurementType::UWB : {
       auto uwbMeasPtr = std::dynamic_pointer_cast<UwbMeasurement>(m);
-
-      // test
-      int nRobot = robots_.size();
-      int nAnchor = anchorPositions_.size();
-      int nUwb = nRobot + anchorPositions_.size();
-      int nRange = uwbMeasBuffer_.size() - nAnchor * (nAnchor - 1) / 2;
-      assert(uwbMeasBuffer_.size() == nUwb * (nUwb - 1) / 2);
-      // test end
 
       // Check if all robots' state propageted
       int nPropagated = 0;
       for (auto it = statesPropagated_.begin(); it != statesPropagated_.end(); ++it) {
         nPropagated += it->second;
       }
-      if (nPropagated != nRobot) {
-        uwbMeasBuffer_[uwbMeasPtr->uwbPair].push(uwbMeasPtr);
-        break;
+      if (nPropagated != nRobot_) {
+        uwbMeasBuffer_[uwbMeasPtr->uwbPair].push_back(uwbMeasPtr);
+        break; 
       }
 
+      // TODO: how to calculate P_
+      // 1.2 error covariance propagation
+      P_ = Phi_ * P_ * Phi_.transpose() + deltaSec_*deltaSec_*Q_;
+
+      assert(uwbMeasBuffer_.size() == nUwb_ * (nUwb_ - 1) / 2);
       // All robots' states propageted, now it's time to update
-      // 2. Construct observation stuff
-      Eigen::MatrixXd H = Eigen::MatrixXd::Zero(nRange, 3*nRobot);      
-      Eigen::VectorXd y = Eigen::VectorXd::Zero(nRange);
-      Eigen::VectorXd yPredict = Eigen::VectorXd::Zero(nRange);
+      // 2. ESKF update
+      // 2.1 Construct observation stuff
+      Eigen::MatrixXd H = Eigen::MatrixXd::Zero(nRange_, 3*nRobot_);      
+      Eigen::VectorXd y = Eigen::VectorXd::Zero(nRange_);
+      Eigen::VectorXd yPredict = Eigen::VectorXd::Zero(nRange_);
 
       int indexH = 0;
       for (auto it = uwbMeasBuffer_.begin(); it != uwbMeasBuffer_.end(); ++it) {
@@ -111,7 +136,21 @@ void Estimator::process(const measBasePtr& m) {
 
         ++indexH;
       }
+
+      // 2.2. Kalman gain
+      Eigen::MatrixXd K = P_ * H.transpose() * (H*P_*H.transpose() + R_).inverse();
+
+      Eigen::VectorXd deltaX = K * (y - yPredict);
+
+      // 2.3 Correct
+      int rindex = 0;
+      for (auto& it : robots_) 
+        it.second.state_.correct(deltaX.segment<3>(rindex++));
       
+      P_ = (Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_) - K * H) * P_ 
+           * (Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_) - K * H).transpose() 
+           + K * R_ * K.transpose();
+
       break;
     }
     default: {
