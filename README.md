@@ -7,5 +7,8 @@ You need to install the following dependencies,
 - CMake: `sudo apt-get install cmake`
 - Boost: `sudo apt-get install libboost-dev`
 
+Optional:
+Plotting library if you build the application: `sudo apt-get install python-matplotlib python-numpy python2.7-dev`
+
 ## System requirement
 The system is Little Endian.

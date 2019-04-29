@@ -9,7 +9,7 @@ class CLSystem {
     CLSystem();
 
     void process(const measBasePtr& m);
-
+    
   private:
     PositionInitializer positionIni_;
     Estimator estimator_;

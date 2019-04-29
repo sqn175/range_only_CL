@@ -12,6 +12,7 @@ set(RCL_VERSION
 set(CMAKE_CXX_STANDARD 11)
 
 # Option for build configuration
+option (BUILD_APP "Builds the application" ON)
 option (BUILD_TESTS "Builds all gtests" ON) 
 
 # Plugin in download script to add externerl project
@@ -43,14 +44,27 @@ add_subdirectory(io)
 add_dependencies(io sensor_fusion)
 
 # Build the app
-add_executable(${PROJECT_NAME}_sync_app apps/src/sync_app_main.cpp)
-target_include_directories(${PROJECT_NAME}_sync_app PRIVATE
-  io/include
-  sensor_fusion/include)
-# Link libraties
-target_link_libraries(${PROJECT_NAME}_sync_app
-  io
-  sensor_fusion)
+if (BUILD_APP)
+  download_project( PROJ                matplot
+                    GIT_REPOSITORY      https://github.com/lava/matplotlib-cpp.git
+                    GIT_TAG             master
+                    PREFIX              ${CMAKE_BINARY_DIR}/third_party/matplot
+                    UPDATE_DISCONNECTED 1
+  )
+
+  find_package(PythonLibs 2.7 REQUIRED)
+  add_executable(${PROJECT_NAME}_sync_app apps/src/sync_app_main.cpp)
+  target_include_directories(${PROJECT_NAME}_sync_app PRIVATE
+    io/include
+    sensor_fusion/include
+    ${matplot_SOURCE_DIR}
+    ${PYTHON_INCLUDE_DIRS})
+  # Link libraties
+  target_link_libraries(${PROJECT_NAME}_sync_app
+    io
+    sensor_fusion
+    ${PYTHON_LIBRARIES})
+endif()
 
 if (BUILD_TESTS)
   download_project(PROJ               googletest
