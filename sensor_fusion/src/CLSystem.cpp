@@ -2,9 +2,11 @@
 
 #include "glog/logging.h"
 
-CLSystem::CLSystem()
+CLSystem::CLSystem(const NoiseParams& noise, double deltaSec)
   : positionInitialized_(false)
-  , poseInitialized_(false){
+  , poseInitialized_(false)
+  , noise_(noise)
+  , deltaSec_(deltaSec){
 }
 
 void CLSystem::process(const measBasePtr& m) {
@@ -17,13 +19,25 @@ void CLSystem::process(const measBasePtr& m) {
       auto robotPositions = positionIni_.GetRobotPositions();
       for (auto& r : robotPositions) {
         auto xy = r.second;
-        robots_.insert(std::move(Robot(r.first, xy(0), xy(1))));
+        robots_[r.first] = Robot(r.first, xy(0), xy(1));
       }
       LOG(INFO) << "Anchor position initialization completed!";
     }
   } else if (!poseInitialized_) {
      // If position initialized, but orientation not initialized
-     estimator_.init();
+     // Fake pose initializer
+     if (positionInitialized_) {
+       poseInitialized_ = true;
+       std::map<int, double> fakePhi;
+       fakePhi[1] = -2.971;
+       fakePhi[4] = -3.079;
+       for (auto& r : robots_) {
+         r.second.setOrientation(fakePhi[r.first]);
+       }
+
+       // Initialize estimator
+       estimator_.init(noise_, robots_, anchorPositions_, deltaSec_);
+     }
   } else {
     // ESKF update and correct
     estimator_.process(m);

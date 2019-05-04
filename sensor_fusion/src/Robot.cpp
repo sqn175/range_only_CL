@@ -14,6 +14,10 @@ Robot::Robot(int id, double x, double y, double phi)
   , state_(x, y, phi) {
 }
 
+void Robot::setOrientation(double phi) {
+  state_.phi_ = phi;
+}
+
 int Robot::id() const {
   return id_;
 }

@@ -174,7 +174,7 @@ std::map<int, Eigen::Vector2d> PositionInitializer::GetRobotPositions() {
   std::map<int, Eigen::Vector2d> res;
   if (uwbPositions_.data()) {
     assert(uwbIds_.size() == uwbPositions_.rows());
-    auto idIter = anchorIds_.begin();
+    auto idIter = robotIds_.begin();
     int i = anchorIds_.size();
     for ( ; i < uwbIds_.size(); ++i) {
       Eigen::Vector2d xy;

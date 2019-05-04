@@ -7,6 +7,7 @@ set(SENSOR_FUSION_SRCS
   src/Initializer.cpp
   src/Estimator.cpp
   src/Robot.cpp
+  src/CLSystem.cpp
 )
 
 add_library(${PROJECT_NAME} ${SENSOR_FUSION_SRCS})

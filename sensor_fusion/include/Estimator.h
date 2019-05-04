@@ -11,7 +11,7 @@
 #include <utility>
 
 // Standard deviation of noises
-using NoiseParams = struct {
+struct NoiseParams{
   double sigmaV;
   double sigmaOmega;
   double sigmaRange;

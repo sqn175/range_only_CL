@@ -16,14 +16,14 @@ void Estimator::init(const NoiseParams& noises, std::map<int, Robot> iniRobots,
   nRobot_ = robots_.size();
   nAnchor_ = anchorPositions_.size();
   nUwb_ = nRobot_ + anchorPositions_.size();
-  nRange_ = uwbMeasBuffer_.size() - nAnchor_ * (nAnchor_ - 1) / 2; // Ignore anchor-anchor range measurements
+  nRange_ = nUwb_ * (nUwb_ - 1) / 2 - nAnchor_ * (nAnchor_ - 1) / 2; // Ignore anchor-anchor range measurements
 
   P_ = Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_);
-  Eigen::VectorXd singleQ;
+  Eigen::Vector3d singleQ;
   singleQ << noises.sigmaV * noises.sigmaV,
              noises.sigmaV * noises.sigmaV,
              noises.sigmaOmega * noises.sigmaOmega;
-  Q_ = (singleQ.replicate(1, nRobot_)).asDiagonal();
+  Q_ = (singleQ.replicate(nRobot_, 1)).asDiagonal();
   R_ = (Eigen::VectorXd::Ones(nRange_) * noises.sigmaRange * noises.sigmaRange).asDiagonal();
   Phi_ = Eigen::MatrixXd::Zero(3*nRobot_, 3*nRobot_);
   for (int i = 0; i < nRobot_; ++i) {
@@ -43,6 +43,9 @@ void Estimator::process(const measBasePtr& m) {
     case MeasurementType::WHEEL : {
       auto wheelMeasPtr = std::dynamic_pointer_cast<WheelMeasurement>(m);
       auto id = wheelMeasPtr->uwbId;
+
+      // TODO: 检查是否存在last
+
       double deltaSec = wheelMeasPtr->timeStamp - lastWheelMeas_[id]->timeStamp;
       // 1. ESKF predict 
       // 1.1 State propagation

@@ -11,7 +11,6 @@ class States {
     States(const double& x, const double& y, const double& phi);
     States(const States& s);
 
-    States& operator=(States s);
     States& operator+=(const States& rhs);
     States& operator*=(const States& rhs);
     States& operator*=(const double& c);

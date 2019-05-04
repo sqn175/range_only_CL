@@ -6,7 +6,7 @@
 
 class CLSystem {
   public:
-    CLSystem();
+    CLSystem(const NoiseParams& noise, double deltaSec);
 
     void process(const measBasePtr& m);
     
@@ -16,5 +16,9 @@ class CLSystem {
     bool positionInitialized_; // The position of the UWB anchors are initialized.
     bool poseInitialized_;     // The pose of the moving UWB anchors are initialized.
     std::map<int, Eigen::Vector2d> anchorPositions_;
-    std::set<Robot> robots_;
+    std::map<int, Robot> robots_;
+    NoiseParams noise_;
+    double deltaSec_;
+
+    
 };

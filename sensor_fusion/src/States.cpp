@@ -14,11 +14,6 @@ States::States(const States& s)
   : x_(s.x_), y_(s.y_), phi_(s.phi_){
 }
 
-States& States::operator=(States s) {
-  std::swap(*this, s);
-  return *this;
-}
-
 States& States::operator+=(const States& rhs) {
   x_ += rhs.x_;
   y_ += rhs.y_;
