@@ -9,6 +9,13 @@ class CLSystem {
     CLSystem(const NoiseParams& noise, double deltaSec);
 
     void process(const measBasePtr& m);
+
+    // Callbacks are not thread-safe
+    void SetIniStatesCallback(const std::function<void (std::map<int, Robot>, 
+                                                        std::map<int, Eigen::Vector2d> 
+                                                       )>& callback);
+
+    void SetRobotStatesCallback(const std::function<void (std::map<int, Robot> robots)>& callback);
     
   private:
     PositionInitializer positionIni_;
@@ -20,5 +27,6 @@ class CLSystem {
     NoiseParams noise_;
     double deltaSec_;
 
-    
+    std::function<
+      void (std::map<int, Robot>, std::map<int, Eigen::Vector2d>)> iniStatesCallback_;
 };

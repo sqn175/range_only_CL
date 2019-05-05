@@ -22,6 +22,9 @@ void CLSystem::process(const measBasePtr& m) {
         robots_[r.first] = Robot(r.first, xy(0), xy(1));
       }
       LOG(INFO) << "Anchor position initialization completed!";
+
+      if (iniStatesCallback_)
+        iniStatesCallback_(robots_, anchorPositions_);
     }
   } else if (!poseInitialized_) {
      // If position initialized, but orientation not initialized
@@ -42,4 +45,13 @@ void CLSystem::process(const measBasePtr& m) {
     // ESKF update and correct
     estimator_.process(m);
   }
+}
+
+void CLSystem::SetRobotStatesCallback(const std::function<void (std::map<int, Robot> robots)>& callback) {
+  estimator_.SetRobotStatesCallback(callback);
+}
+    
+void CLSystem::SetIniStatesCallback(const std::function<void (std::map<int, Robot>, 
+                                    std::map<int, Eigen::Vector2d> )>& callback) {
+  iniStatesCallback_ = callback;
 }

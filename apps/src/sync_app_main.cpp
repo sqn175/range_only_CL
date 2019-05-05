@@ -20,19 +20,17 @@ class Viewer {
       arrowY_.reserve(nRobot_);
       arrowU_.reserve(nRobot_);
       arrowV_.reserve(nRobot_);
-      ancX_.reserve(nAnchor_);
-      ancY_.reserve(nAnchor_);
-      for (auto& anc : anchorPositions) {
-        ancX_.push_back(anc.second(0));
-        ancY_.push_back(anc.second(1));
+      ancPositions_ = anchorPositions;
+      for (auto& anc : ancPositions_) {
+        plt::plot(std::vector<double>{anc.second(0)}, std::vector<double>{anc.second(1)});
         plt::text(anc.second(0), anc.second(1), "Anchor " + std::to_string(anc.first));
       }
-
+      ResizeWindow();
       plt::title("Collaborative Localization");
       plt::axis("equal");
 
       // Plot anchors
-      plt::plot(ancX_, ancY_);
+      plt::pause(0.01);
     }
 
     void UpdateAsCallBack(std::map<int, Robot> robots) {
@@ -40,8 +38,15 @@ class Viewer {
       plt::clf();
 
       // Plot anchors
-      plt::plot(ancX_, ancY_);
+      for (auto& anc : ancPositions_) {
+        plt::plot(std::vector<double>{anc.second(0)}, std::vector<double>{anc.second(1)});
+        plt::text(anc.second(0), anc.second(1), "Anchor " + std::to_string(anc.first));
+      }
 
+      arrowX_.clear();
+      arrowY_.clear();
+      arrowU_.clear();
+      arrowV_.clear();
       for (auto&r : robots) {
         int rId = r.first;
         if (x_[rId].size() >= 10) {
@@ -54,19 +59,56 @@ class Viewer {
         phi_[rId].push_back(r.second.state_.phi_);
         // Plot robot trajectories
         plt::plot(x_[rId], y_[rId]);
+        plt::text(r.second.state_.x_, r.second.state_.y_, "Robot " + std::to_string(rId));
 
         // Orientation arrow
         // u and v are respectively the x and y components of the arrows we're plotting
         arrowX_.push_back(r.second.state_.x_);
         arrowY_.push_back(r.second.state_.y_);
-        double u = r.second.state_.x_ + cos(r.second.state_.phi_) * 0.2;
-        double v = r.second.state_.y_ + sin(r.second.state_.phi_) * 0.2;
+        double u = cos(r.second.state_.phi_) * 0.2;
+        double v = sin(r.second.state_.phi_) * 0.2;
         arrowU_.push_back(u);
         arrowV_.push_back(v);
       }
+      ResizeWindow();
       // plot arrows
       plt::quiver(arrowX_, arrowY_, arrowU_, arrowV_);
-      plt::show();
+      // plt::show();
+      plt::pause(0.01);
+    }
+
+    void ResizeWindow() {
+      double xMin = 1e9, xMax = -1e9, yMin = 1e9, yMax = -1e9;
+      for (auto& xItem : x_) {
+        for (auto& x : xItem.second) {
+          if (x < xMin)
+            xMin = x;
+          if (x > xMax)
+            xMax = x;
+        }
+      }
+      for (auto& yItem : y_) {
+        for (auto& y : yItem.second) {
+          if (y < yMin) 
+            yMin = y;
+          if (y > yMax)
+            yMax = y;
+        }
+      }
+      for (auto& ancItem : ancPositions_) {
+        double ancX = ancItem.second(0);
+        double ancY = ancItem.second(1);
+        if (ancX < xMin)
+          xMin = ancX;
+        if (ancX > xMax)
+          xMax = ancX;
+        if (ancY < yMin)
+          yMin = ancY;
+        if (ancY > yMax)
+          yMax = ancY;
+      }
+      plt::xlim(xMin - 0.5, xMax + 0.5);
+      plt::ylim(yMin - 0.2, yMax + 0.2);
     }
 
   private:
@@ -75,8 +117,7 @@ class Viewer {
     std::map<int, std::vector<double>> x_;
     std::map<int, std::vector<double>> y_;
     std::map<int, std::vector<double>> phi_;
-    std::vector<double> ancX_;
-    std::vector<double> ancY_;
+    std::map<int, Eigen::Vector2d> ancPositions_;
     std::vector<double> arrowX_;   // arrow start point
     std::vector<double> arrowY_;
     std::vector<double> arrowU_;   // arrow end point
@@ -99,6 +140,14 @@ int main(int argc, char **argv) {
   MessageParser parser;
   CLSystem rclSystem(noises, deltaSec);
   Viewer viewer;
+
+  rclSystem.SetIniStatesCallback(
+    std::bind(&Viewer::InitAsCallBack, &viewer,
+              std::placeholders::_1, std::placeholders::_2));
+
+  rclSystem.SetRobotStatesCallback(
+    std::bind(&Viewer::UpdateAsCallBack, &viewer,
+              std::placeholders::_1));
 
   std::string fileName = "/home/qin/Documents/range_only_CL/datasets/20190418/pc.txt";
   std::ifstream dataFile(fileName, std::ios::binary);
