@@ -131,7 +131,7 @@ void Estimator::SetRobotStatesCallback(const std::function<void (std::map<int, R
 void Estimator::KalmanCorrect() {
   // TODO: how to calculate P_
   // 1.2 error covariance propagation
-  P_ = Phi_ * P_ * Phi_.transpose() + deltaSec_*deltaSec_*Q_;
+  P_ = Phi_ * P_ * Phi_.transpose() + deltaSec_* deltaSec_* Q_;
 
   assert(uwbMeasBuffer_.size() == nUwb_ * (nUwb_ - 1) / 2);
   // All robots' states propageted, now it's time to update

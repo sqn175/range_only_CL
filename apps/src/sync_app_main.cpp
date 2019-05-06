@@ -30,7 +30,7 @@ class Viewer {
       plt::axis("equal");
 
       // Plot anchors
-      plt::pause(0.01);
+      plt::pause(0.005);
     }
 
     void UpdateAsCallBack(std::map<int, Robot> robots) {
@@ -74,7 +74,7 @@ class Viewer {
       // plot arrows
       plt::quiver(arrowX_, arrowY_, arrowU_, arrowV_);
       // plt::show();
-      plt::pause(0.01);
+      plt::pause(0.005);
     }
 
     void ResizeWindow() {
