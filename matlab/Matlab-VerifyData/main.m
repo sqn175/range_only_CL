@@ -24,7 +24,7 @@ anchorIDs = setdiff(UWBIDs, robotIDs);
 nAnchor = length(anchorIDs);
 
 if readfile_flag
-    
+
 [UWBFilename, filePath] = uigetfile('*.txt','Select UWB hex data file');
 addpath(filePath);
 
@@ -75,6 +75,10 @@ pairs = nUWB*(nUWB-1)/2;
 % simple range rejection
 for i = 1:pairs
     index = find(range_m(i).range > 1e5);
+    if (sum(index) > 0)
+        disp('UWB outiler:');
+        disp(range_m(i).range(index));
+    end
     range_m(i).range(index) = range_m(i).range(index-1);
 end
 

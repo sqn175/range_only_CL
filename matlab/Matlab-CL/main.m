@@ -57,7 +57,7 @@ elseif dataOri == 2
     nRobots = length(robotIDs);
     nUWB = length(UWBIDs);
 
-    load('data190313.mat');
+    load('data.mat');
 %     robot(1).v_m(877) = 0;
 %     robot(1).omega_m(877) = 0;
 %     save('data20190301.mat', 'robot', 'range_m');
@@ -83,7 +83,7 @@ elseif dataOri == 2
     end
 end
 
-sim_len = length(robot(1).omega_m);
+sim_len = length(robot(2).omega_m);
 
 % figure test
 figure;  axis equal
@@ -273,6 +273,7 @@ for k = 2:sim_len
     % 1. State and covariance propagation
     Phi_all = zeros(3*nRobots, 3*nRobots);
     for r = 1:nRobots
+        thetatmp = state_est(r).phi_;
         [Phi, state_est(r)] = state_est(r).propagate(robot(r).v_m(k-1), ...
             robot(r).omega_m(k-1),robot(r).v_m(k), robot(r).omega_m(k), ...
             dt_sec, true);

@@ -3,3 +3,6 @@ build/
 
 # vscode cache files
 .vscode/ipch/
+
+# Matlab mat files
+*.mat
