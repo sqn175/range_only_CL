@@ -41,6 +41,7 @@ class Estimator {
     double deltaSec_;
 
     // Error state Kalman filter (ESKF) stuff
+    Eigen::Vector3d singleQ_;
     Eigen::MatrixXd Q_;
     Eigen::MatrixXd Phi_;
     Eigen::MatrixXd R_;

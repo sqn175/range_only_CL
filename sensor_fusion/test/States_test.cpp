@@ -11,7 +11,7 @@ TEST(StatesTest, propagate) {
   double v1 = 0.066344467923045;
   double omega1 = -0.299301259219646;
   double deltaSec = 0.05;
-  ini.propagate(v0, omega0, v1, omega1, deltaSec, false);
+  ini.propagate(v0, omega0, v1, omega1, deltaSec);
 
   States expectedStates(1.303715137910676, 1.643376762591485, 0.739938670352074);
   EXPECT_TRUE(ini.serialize().isApprox(expectedStates.serialize(), 1e-9));

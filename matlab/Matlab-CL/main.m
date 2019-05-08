@@ -7,7 +7,7 @@ set(0,'DefaultLineMarkerSize',12);
 %% The groundtruth and measurements
 sim_freq = 20;  % Groundtruth simulation frequency in Hz.
 dt_sec = 1/sim_freq;
-% ����ֻ��SLAM����õ�1�Ż�������У�����ֵ
+% ����ֻ��SLAM����õ�?1�Ż�������У������?
 coef = [-0.0645072297986758,1.14230147991211,0.515768398211774];
 % We set world frame coincide with the reference frame of robot 1
 % robot1, trajectory expressed in its own reference frame
@@ -67,8 +67,8 @@ elseif dataOri == 2
         range_m(i).range = tmprange + 0.5158;
 %         range_m(i).range = coef(1)*tmprange.^2 + coef(2)*tmprange + coef(3);
     end
-    % �ض����ݼ����ض��������������ê��֮��Ĳ��ֵ,���Ұ���ê����׼�����
-    % ���ֵ����
+    % �ض����ݼ����ض��������������ê��֮��Ĳ���?,���Ұ���ê����׼�����?
+    % ���ֵ����?
     range_tmp = range_m;
     range_m(1) = range_tmp(5);
     range_m(2) = range_tmp(1);
@@ -77,7 +77,7 @@ elseif dataOri == 2
     range_m(5) = range_tmp(6);
     range_m(6) = range_tmp(2);
     
-    % �������������ϵ����С����ת���������ֵ�
+    % �������������ϵ����С����ת���������ֵ�?
     for r = 1:nRobots
         robot(r).omega_m = -robot(r).omega_m;
     end
@@ -269,14 +269,17 @@ for k = 2:sim_len
     if k == 2830
         k = k;
     end
+    Q_all = diag(repmat(Q,[1,nRobots]));
     % 1. State and covariance propagation
     Phi_all = zeros(3*nRobots, 3*nRobots);
     for r = 1:nRobots
         [Phi, state_est(r)] = state_est(r).propagate(robot(r).v_m(k-1), ...
             robot(r).omega_m(k-1),robot(r).v_m(k), robot(r).omega_m(k), ...
-            dt_sec, false);
+            dt_sec, true);
         
         Phi_all(1+3*(r-1):3*r, 1+3*(r-1):3*r) = Phi;
+        Q_all(1+(r-1)*3,1+(r-1)*3)= Q_all(1+(r-1)*3,1+(r-1)*3)*cos(thetatmp)^2;
+        Q_all(2+(r-1)*3,2+(r-1)*3) = Q_all(2+(r-1)*3,2+(r-1)*3)*sin(thetatmp)^2;
     end
     P_all = Phi_all * P_all * Phi_all' + dt_sec^2*Q_all;
     

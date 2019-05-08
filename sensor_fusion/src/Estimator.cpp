@@ -19,11 +19,11 @@ void Estimator::init(const NoiseParams& noises, std::map<int, Robot> iniRobots,
   nRange_ = nUwb_ * (nUwb_ - 1) / 2 - nAnchor_ * (nAnchor_ - 1) / 2; // Ignore anchor-anchor range measurements
 
   P_ = Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_);
-  Eigen::Vector3d singleQ;
-  singleQ << noises.sigmaV * noises.sigmaV,
+
+  singleQ_ << noises.sigmaV * noises.sigmaV,
              noises.sigmaV * noises.sigmaV,
              noises.sigmaOmega * noises.sigmaOmega;
-  Q_ = (singleQ.replicate(nRobot_, 1)).asDiagonal();
+  Q_ = (singleQ_.replicate(nRobot_, 1)).asDiagonal();
   R_ = (Eigen::VectorXd::Ones(nRange_) * noises.sigmaRange * noises.sigmaRange).asDiagonal();
   Phi_ = Eigen::MatrixXd::Zero(3*nRobot_, 3*nRobot_);
   for (int i = 0; i < nRobot_; ++i) {
@@ -65,8 +65,14 @@ void Estimator::process(const measBasePtr& m) {
         // 1. ESKF predict 
         // 1.1 State propagation
         robots_[id].state_.propagate(lastWheelMeas_[id]->v, lastWheelMeas_[id]->omega,
-                                     wheelMeasPtr->v, wheelMeasPtr->omega, deltaSec, false);
+                                     wheelMeasPtr->v, wheelMeasPtr->omega, deltaSec);
         
+        auto itRobot = robots_.find(id);
+        assert(itRobot != robots_.end());
+        int index = std::distance(robots_.begin(), itRobot); 
+        Q_(3*(index-1), 3*(index-1)) *= cos(robots_[id].state_.phi_) * cos(robots_[id].state_.phi_);
+        Q_(1+3*(index-1), 1+3*(index-1)) *= sin(robots_[id].state_.phi_) * sin(robots_[id].state_.phi_);
+
         statesPropagated_[id] = true;
       }
       lastWheelMeas_[id] = wheelMeasPtr;
@@ -132,6 +138,8 @@ void Estimator::KalmanCorrect() {
   // TODO: how to calculate P_
   // 1.2 error covariance propagation
   P_ = Phi_ * P_ * Phi_.transpose() + deltaSec_* deltaSec_* Q_;
+  // reset Q
+  Q_ = (singleQ_.replicate(nRobot_, 1)).asDiagonal();
 
   assert(uwbMeasBuffer_.size() == nUwb_ * (nUwb_ - 1) / 2);
   // All robots' states propageted, now it's time to update

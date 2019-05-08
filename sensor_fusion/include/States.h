@@ -17,10 +17,9 @@ class States {
     friend std::ostream& operator<<(std::ostream& out, const States& s);
     Eigen::Vector3d serialize();
   
-    // TODO: do we need calPhi flag?
     Eigen::Matrix3d& propagate(double v0, double omega0, 
                               double v1, double omega1, 
-                              double deltaSec, bool calPhi);
+                              double deltaSec);
     void correct(const Eigen::Vector3d& delta);
     
   public:
@@ -29,6 +28,7 @@ class States {
     double phi_; // orientation (rad)
   private:
     States dot(const double& v, const double& omega);
+    // Continuous time jacobian matrix of f() with respect to error-state
     Eigen::Matrix3d& jacobian(const double& v, const double& omega);
 };
 

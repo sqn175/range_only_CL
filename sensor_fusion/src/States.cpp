@@ -49,14 +49,13 @@ States States::dot(const double& v, const double& omega) {
 
 Eigen::Matrix3d& States::propagate(double v0, double omega0, 
                           double v1, double omega1, 
-                          double deltaSec, bool calPhi) {
+                          double deltaSec) {
 
-  Eigen::Matrix3d matPhi = Eigen::Matrix3d::Identity();
+  Eigen::Matrix3d matPhi;
   double vMid = (v0 + v1) / 2;
   double omegaMid = (omega0 + omega1) / 2;
-  if (calPhi) {
-    matPhi = deltaSec * jacobian(vMid, omegaMid);
-  }
+  // The transition matrix
+  matPhi = Eigen::Matrix3d::Identity() + deltaSec * jacobian(vMid, omegaMid);
   States tmp = dot(vMid, omegaMid); // The derivative
   tmp *= deltaSec;  // The derivative mtimes the delta t
   *this += tmp;
@@ -75,8 +74,6 @@ void States::correct(const Eigen::Vector3d& delta) {
   }
 }
 
-// TODO: jacobian计算是否正确，比如输入的是v的中值，那么此时的状态是否也是状态的中值，而不是
-// v0对应的状态phi_
 Eigen::Matrix3d& States::jacobian(const double& v, const double& omega) {
   Eigen::Matrix3d j;
   j << 0, 0, -v * sin(phi_),

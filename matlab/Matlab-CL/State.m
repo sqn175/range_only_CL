@@ -47,7 +47,7 @@ classdef State
                 state_der = o.dot(v_0, omega_0);
                 s = o + state_der * delta_sec;
                 if Phi_flag
-                    Phi = delta_sec * jacobian(o, v_0, omega_0);
+                    Phi = eye(3) + delta_sec * jacobian(o, v_0, omega_0);
                 end
             elseif  int_method == 2 % midpoint
                 v_mid = (v_0 + v_1) / 2;
@@ -55,7 +55,7 @@ classdef State
                 state_der = o.dot(v_mid, omega_mid);
                 s = o + state_der * delta_sec;
                 if Phi_flag
-                    Phi = delta_sec * jacobian(o, v_mid, omega_mid);
+                    Phi = eye(3) + delta_sec * jacobian(o, v_mid, omega_mid);
                 end
             end
         end
