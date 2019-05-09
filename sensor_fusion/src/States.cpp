@@ -18,6 +18,11 @@ States& States::operator+=(const States& rhs) {
   x_ += rhs.x_;
   y_ += rhs.y_;
   phi_ += rhs.phi_;
+  if (phi_ >  M_PI) {
+    phi_ -= 2 * M_PI;
+  } else if (phi_ < -M_PI) {
+    phi_ += 2 * M_PI;
+  }
   return *this;
 }
 
@@ -47,7 +52,7 @@ States States::dot(const double& v, const double& omega) {
   return s;
 }
 
-Eigen::Matrix3d& States::propagate(double v0, double omega0, 
+Eigen::Matrix3d States::propagate(double v0, double omega0, 
                           double v1, double omega1, 
                           double deltaSec) {
 
@@ -63,7 +68,7 @@ Eigen::Matrix3d& States::propagate(double v0, double omega0,
   return matPhi;
 }
 
-void States::correct(const Eigen::Vector3d& delta) {
+void States::correct(const Eigen::Vector3d delta) {
   x_ += delta[0];
   y_ += delta[1];
   phi_ += delta[2];
@@ -74,7 +79,7 @@ void States::correct(const Eigen::Vector3d& delta) {
   }
 }
 
-Eigen::Matrix3d& States::jacobian(const double& v, const double& omega) {
+Eigen::Matrix3d States::jacobian(const double& v, const double& omega) {
   Eigen::Matrix3d j;
   j << 0, 0, -v * sin(phi_),
        0, 0, v * cos(phi_),

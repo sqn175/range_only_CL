@@ -7,7 +7,7 @@ set(0,'DefaultLineMarkerSize',12);
 %% The groundtruth and measurements
 sim_freq = 20;  % Groundtruth simulation frequency in Hz.
 dt_sec = 1/sim_freq;
-% ����ֻ��SLAM����õ�?1�Ż�������У������?
+% ����ֻ��SLAM����õ�?1�Ż�������У������?
 coef = [-0.0645072297986758,1.14230147991211,0.515768398211774];
 % We set world frame coincide with the reference frame of robot 1
 % robot1, trajectory expressed in its own reference frame
@@ -67,8 +67,8 @@ elseif dataOri == 2
         range_m(i).range = tmprange + 0.5158;
 %         range_m(i).range = coef(1)*tmprange.^2 + coef(2)*tmprange + coef(3);
     end
-    % �ض����ݼ����ض��������������ê��֮��Ĳ���?,���Ұ���ê����׼�����?
-    % ���ֵ����?
+    % �ض����ݼ����ض��������������ê��֮��Ĳ���?,���Ұ���ê����׼�����?
+    % ���ֵ����?
     range_tmp = range_m;
     range_m(1) = range_tmp(5);
     range_m(2) = range_tmp(1);
@@ -77,7 +77,7 @@ elseif dataOri == 2
     range_m(5) = range_tmp(6);
     range_m(6) = range_tmp(2);
     
-    % �������������ϵ����С����ת���������ֵ�?
+    % �������������ϵ����С����ת���������ֵ�?
     for r = 1:nRobots
         robot(r).omega_m = -robot(r).omega_m;
     end
@@ -241,6 +241,17 @@ end
 % p_gt = [robot(3).x0 robot(3).y0]
 % p_m
 %% Kalman
+% test
+   range_tmp = range_m;
+    range_m(1) = range_tmp(2);
+    range_m(2) = range_tmp(4);
+    range_m(3) = range_tmp(3);
+    range_m(4) = range_tmp(1);
+    range_m(5) = range_tmp(5);
+
+% test end
+
+
 P_all = eye(3*nRobots);
 Q = [sigma_v^2, sigma_v^2, sigma_omega^2];
 Q_all = diag(repmat(Q,[1,nRobots]));
@@ -296,7 +307,8 @@ for k = 2:sim_len
             if 5*k+2 > length(range_m(1).t)
                 break;
             end
-            y_k(i) = mean(range_m(i).range(5*k-2:5*k+2));
+%             y_k(i) = mean(range_m(i).range(5*k-2:5*k+2));
+            y_k(i) = mean(range_m(i).range(5*k+1:5*(k+1)));
         end
         id1 = range_m(i).pair(1); 
         id2 = range_m(i).pair(2); 

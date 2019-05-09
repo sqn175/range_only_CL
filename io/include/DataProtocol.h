@@ -3,11 +3,14 @@
 #include "Measurement.h"
 
 #include <boost/circular_buffer.hpp>
+// #include <boost/cstdfloat.hpp>
 
 #include <cstdint>
 #include <ctime>
 #include <vector>
 #include <memory>
+
+#include <climits>
 
 // The byte index of the binary message
 #define INDEX_MSG_HEADER       0

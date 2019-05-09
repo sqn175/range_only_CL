@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <assert.h>
+#include <cmath> // std::abs
 
 Estimator::Estimator() {
 }
@@ -26,9 +27,6 @@ void Estimator::init(const NoiseParams& noises, std::map<int, Robot> iniRobots,
   Q_ = (singleQ_.replicate(nRobot_, 1)).asDiagonal();
   R_ = (Eigen::VectorXd::Ones(nRange_) * noises.sigmaRange * noises.sigmaRange).asDiagonal();
   Phi_ = Eigen::MatrixXd::Zero(3*nRobot_, 3*nRobot_);
-  for (int i = 0; i < nRobot_; ++i) {
-    Phi_.block<3,3>(3*i, 3*i) = Eigen::MatrixXd::Identity(3,3); // TODO: this is an eye matrix
-  }
 
   deltaSec_ = deltaSec;
 }
@@ -50,13 +48,13 @@ void Estimator::process(const measBasePtr& m) {
         if (deltaSec > 30) // 30 seconds
           LOG(WARNING) << "Wheel encoder measurements lost for 30 seconds!";
 
-        if (abs(wheelMeasPtr->v) > 1e6) { // Outlier
+        if (std::abs(wheelMeasPtr->v) > 1e6) { // Outlier
           LOG(WARNING) << "Outlier wheel encoder velocity measurement: " << wheelMeasPtr->v
                        << " from id = " << std::to_string(wheelMeasPtr->uwbId);
           wheelMeasPtr->v = lastWheelMeas_[id]->v;  // Simply set its value as last velocity
         }
 
-        if (abs(wheelMeasPtr->omega) > 1e6 ) {
+        if (std::abs(wheelMeasPtr->omega) > 1e6 ) {
           LOG(WARNING) << "Outlier wheel encoder angular velocity measurement: " << wheelMeasPtr->omega
                        << " from id = " << std::to_string(wheelMeasPtr->uwbId);
           wheelMeasPtr->omega = lastWheelMeas_[id]->omega;
@@ -64,18 +62,48 @@ void Estimator::process(const measBasePtr& m) {
 
         // 1. ESKF predict 
         // 1.1 State propagation
-        robots_[id].state_.propagate(lastWheelMeas_[id]->v, lastWheelMeas_[id]->omega,
-                                     wheelMeasPtr->v, wheelMeasPtr->omega, deltaSec);
+
+        auto singlePhi = robots_[id].state_.propagate(lastWheelMeas_[id]->v, -lastWheelMeas_[id]->omega,
+                                     wheelMeasPtr->v, -wheelMeasPtr->omega, deltaSec);
         
         auto itRobot = robots_.find(id);
         assert(itRobot != robots_.end());
         int index = std::distance(robots_.begin(), itRobot); 
-        Q_(3*(index-1), 3*(index-1)) *= cos(robots_[id].state_.phi_) * cos(robots_[id].state_.phi_);
-        Q_(1+3*(index-1), 1+3*(index-1)) *= sin(robots_[id].state_.phi_) * sin(robots_[id].state_.phi_);
+        Phi_.block<3,3>(3*index, 3*index) = singlePhi;
+        Q_(3*index, 3*index) *= cos(robots_[id].state_.phi_) * cos(robots_[id].state_.phi_);
+        Q_(1+3*index, 1+3*index) *= sin(robots_[id].state_.phi_) * sin(robots_[id].state_.phi_);
 
         statesPropagated_[id] = true;
       }
       lastWheelMeas_[id] = wheelMeasPtr;
+
+      // Check if all robots' state propageted
+      int nPropagated = 0;
+      for (auto it = statesPropagated_.begin(); it != statesPropagated_.end(); ++it) {
+        nPropagated += it->second;
+      }
+      if (nPropagated != nRobot_) {
+        break; 
+      }
+
+      KalmanCorrect();
+
+      // Reset for states update
+      for (auto& s : statesPropagated_) {
+        s.second = false;
+      }
+        // reset Q
+      Q_ = (singleQ_.replicate(nRobot_, 1)).asDiagonal();
+      Phi_ = Eigen::MatrixXd::Zero(3*nRobot_, 3*nRobot_);
+      // Clear the buffer
+      for (auto& item : uwbMeasBuffer_) {
+        item.second.clear();
+      }
+
+      if (robotStatesCallback_) {
+        // TODO: Not thread-safe
+        robotStatesCallback_(robots_);
+      }
 
       break;
     }
@@ -100,27 +128,6 @@ void Estimator::process(const measBasePtr& m) {
 
       // Append the buffer
       uwbMeasBuffer_[uwbMeasPtr->uwbPair].push_back(uwbMeasPtr);
-
-      // Check if all robots' state propageted
-      int nPropagated = 0;
-      for (auto it = statesPropagated_.begin(); it != statesPropagated_.end(); ++it) {
-        nPropagated += it->second;
-      }
-      if (nPropagated != nRobot_) {
-        break; 
-      }
-
-      KalmanCorrect();
-
-      // Clear the buffer
-      for (auto& item : uwbMeasBuffer_) {
-        item.second.clear();
-      }
-
-      if (robotStatesCallback_) {
-        // TODO: Not thread-safe
-        robotStatesCallback_(robots_);
-      }
       break;
     }
     default: {
@@ -138,8 +145,6 @@ void Estimator::KalmanCorrect() {
   // TODO: how to calculate P_
   // 1.2 error covariance propagation
   P_ = Phi_ * P_ * Phi_.transpose() + deltaSec_* deltaSec_* Q_;
-  // reset Q
-  Q_ = (singleQ_.replicate(nRobot_, 1)).asDiagonal();
 
   assert(uwbMeasBuffer_.size() == nUwb_ * (nUwb_ - 1) / 2);
   // All robots' states propageted, now it's time to update
@@ -185,7 +190,7 @@ void Estimator::KalmanCorrect() {
 
         Eigen::Vector2d dxy;
         dxy << robots_[uwbId1].state_.x_ - anchorPositions_[uwbId2](0),
-                robots_[uwbId1].state_.x_ - anchorPositions_[uwbId2](1);
+                robots_[uwbId1].state_.y_ - anchorPositions_[uwbId2](1);
         yPredict(indexH) = dxy.norm();
         Eigen::Vector2d e = dxy.array() / yPredict(indexH);
         H.block<1,2>(indexH, 3*index1) = e.transpose();
@@ -210,20 +215,16 @@ void Estimator::KalmanCorrect() {
 
   // 2.2. Kalman gain
   Eigen::MatrixXd K = P_ * H.transpose() * (H*P_*H.transpose() + R_).inverse();
-
+  
   Eigen::VectorXd deltaX = K * (y - yPredict);
 
   // 2.3 Correct
   int rindex = 0;
   for (auto& it : robots_) 
-    it.second.state_.correct(deltaX.segment<3>(rindex++));
-
+    it.second.state_.correct(deltaX.segment<3>(3*rindex++));
+  
   P_ = (Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_) - K * H) * P_ 
         * (Eigen::MatrixXd::Identity(3*nRobot_, 3*nRobot_) - K * H).transpose() 
         + K * R_ * K.transpose();
 
-  // Reset for states update
-  for (auto& s : statesPropagated_) {
-    s.second = false;
-  }
 }

@@ -65,6 +65,7 @@ while (true)
                 anchorId = fread(fid, 1, 'uint8');
                 odomInt = fread(fid, 1, 'uint8');
                 odomDelta = fread(fid, 3, 'float32');
+                
                 for r = 1:nRobot
                     if anchorId == odom_m(r).id
                         odom_m(r).t = [odom_m(r).t; timestamp];

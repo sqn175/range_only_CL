@@ -21,6 +21,10 @@ class Viewer {
       arrowU_.reserve(nRobot_);
       arrowV_.reserve(nRobot_);
       ancPositions_ = anchorPositions;
+      for (auto& r : iniRobots) {
+        plt::plot(std::vector<double>{r.second.state_.x_}, std::vector<double>{r.second.state_.y_});
+        plt::text(r.second.state_.x_, r.second.state_.y_, "Robot " + std::to_string(r.first));
+      }
       for (auto& anc : ancPositions_) {
         plt::plot(std::vector<double>{anc.second(0)}, std::vector<double>{anc.second(1)});
         plt::text(anc.second(0), anc.second(1), "Anchor " + std::to_string(anc.first));
@@ -30,7 +34,7 @@ class Viewer {
       plt::axis("equal");
 
       // Plot anchors
-      plt::pause(0.005);
+      plt::pause(0.001);
     }
 
     void UpdateAsCallBack(std::map<int, Robot> robots) {
@@ -49,7 +53,7 @@ class Viewer {
       arrowV_.clear();
       for (auto&r : robots) {
         int rId = r.first;
-        if (x_[rId].size() >= 10) {
+        if (x_[rId].size() >= 1e6) {
           x_[rId].erase(x_[rId].begin());
           y_[rId].erase(y_[rId].begin());
           phi_[rId].erase(phi_[rId].begin());
@@ -74,7 +78,7 @@ class Viewer {
       // plot arrows
       plt::quiver(arrowX_, arrowY_, arrowU_, arrowV_);
       // plt::show();
-      plt::pause(0.005);
+      plt::pause(0.001);
     }
 
     void ResizeWindow() {

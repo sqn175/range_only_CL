@@ -17,10 +17,10 @@ class States {
     friend std::ostream& operator<<(std::ostream& out, const States& s);
     Eigen::Vector3d serialize();
   
-    Eigen::Matrix3d& propagate(double v0, double omega0, 
+    Eigen::Matrix3d propagate(double v0, double omega0, 
                               double v1, double omega1, 
                               double deltaSec);
-    void correct(const Eigen::Vector3d& delta);
+    void correct(const Eigen::Vector3d delta);
     
   public:
     double x_;   // x (meter) coordinate in world reference
@@ -29,7 +29,7 @@ class States {
   private:
     States dot(const double& v, const double& omega);
     // Continuous time jacobian matrix of f() with respect to error-state
-    Eigen::Matrix3d& jacobian(const double& v, const double& omega);
+    Eigen::Matrix3d jacobian(const double& v, const double& omega);
 };
 
 inline States operator+(States lhs, const States& rhs) {

@@ -9,17 +9,25 @@
 #include <map>
 #include <vector>
 
-TEST(DataProtocolTest, parser) {
-  const unsigned char s[] = { 0xA5, 0x5A, 0x12, 0x01, 0xA4, 0x4F, 0x34, 
-                              0x00, 0x04, 0xF1, 0xDF, 0xAF, 0xFF, 0xAA, 
-                              0x00, 0x0A, 0x00, 0x8D, 0x00, 0xFA, 0xF7, 0xDD};
+TEST(DataProtocolTest, wheelDataParser) {
+  const unsigned char s[] = {165,90,19,2,106,173,56,0,1,50,151,144,175,59,0,0,0,0,59,87,76,60,221};
   MessageParser parser;
   parser.pushData((char*)s, 23);
-  auto i = parser.popMsgs();
+  auto m = parser.popMsgs();
+  auto wheelMeasPtr = std::dynamic_pointer_cast<WheelMeasurement>(m.front());
+
+  ASSERT_EQ(wheelMeasPtr->timeStamp, 3.71441e3);
+  ASSERT_EQ(wheelMeasPtr->type_, MeasurementType::WHEEL);
+  ASSERT_EQ(wheelMeasPtr->uwbId, 1);
+  ASSERT_NEAR(wheelMeasPtr->omega, 0.249439384788275, 1e-8);
+  ASSERT_NEAR(wheelMeasPtr->v, 0.107156252488494, 1e-8);
 }
 
 TEST(DataProtocolTest, parserFile) {
-  std::ifstream input("/home/qin/Documents/range_only_CL/io/test/testdata.txt", std::ios::binary);
+
+  ASSERT_EQ(sizeof(float), 4);  // float32 for dx,dy,dphi in WheelData 
+
+  std::ifstream input("/home/qin/Documents/range_only_CL/io/test/20190418.txt", std::ios::binary);
   char data[64];
   MessageParser parser;
   
@@ -65,7 +73,20 @@ TEST(DataProtocolTest, parserFile) {
   ASSERT_EQ(imuMeas.size(), 4);
   ASSERT_EQ(wheelMeas.size(), 2);
 
-  ASSERT_EQ(uwbMeas.begin()->second.size(), 20935);
-  ASSERT_NEAR(uwbMeas.begin()->second[0]->range, 0.405035292508921, 1e-10);
-  ASSERT_NEAR(uwbMeas.begin()->second[10268]->range, 0.779440403886972, 1e-10);
+  ASSERT_EQ(uwbMeas.begin()->second.size(), 34662);
+  ASSERT_NEAR(uwbMeas.begin()->second[0]->range, 1.017652, 1e-6);
+  ASSERT_NEAR(uwbMeas.begin()->second[26340]->range, 1.605612, 1e-6);
+  // An outlier
+  ASSERT_NEAR(uwbMeas.begin()->second[22551]->range, 2.509796148336626e+09, 1);
+
+  ASSERT_EQ(wheelMeas.begin()->first, 1);
+  ASSERT_EQ(wheelMeas[1].size(), 6932);
+  ASSERT_NEAR(wheelMeas[1][1847]->v, 0.1071562, 1e-7);
+  ASSERT_NEAR(wheelMeas[1][1847]->omega, 0.2494393, 1e-7);
+
+  auto it = wheelMeas.find(4);
+  ASSERT_TRUE(it != wheelMeas.end());
+  ASSERT_EQ(wheelMeas[4].size(), 6924);
+  ASSERT_NEAR(wheelMeas[4][4194]->v, 5.32716512e-06, 1e-7);
+  ASSERT_NEAR(wheelMeas[4][4194]->omega, 0.4929537698, 1e-7);
 }

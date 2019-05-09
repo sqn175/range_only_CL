@@ -114,6 +114,12 @@ bool PositionInitializer::TryToInitialize() {
       }
     }
 
+    LOG(INFO) << "Id pair -> range";
+    assert(idPairs.size() == ranges.size());
+    for (int i = 0; i < idPairs.size(); ++i) {
+      LOG(INFO) << "[" << idPairs[i].first << ", " << idPairs[i].second << "] -> " << ranges[i];
+    }
+
     // Construct the adjacent matrix of range
     int nUwb = uwbIds_.size();
     auto it = ranges.begin();
@@ -134,6 +140,17 @@ bool PositionInitializer::TryToInitialize() {
     }
 
     wheelMeasReceived_ = false;
+
+    // for log
+    auto tmpRobots = GetRobotPositions();
+    for (auto& r : tmpRobots) {
+      LOG(INFO) << "Robot " << r.first << ": [x,y] " << r.second(0) << "," << r.second(1); 
+    }
+    auto tmpAnchors = GetAnchorPositions();
+    for (auto& a : tmpAnchors) {
+      LOG(INFO) << "Anchor " << a.first << ": [x,y] " << a.second(0) << "," << a.second(1);
+    }
+
     return true;
   }
   wheelMeasReceived_ = false;

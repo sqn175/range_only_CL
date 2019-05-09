@@ -51,6 +51,9 @@ for i = 1:nRobot
     odom_m(i).omega = odom_m(i).Delta(:,3) ./ odom_m(i).int * 1000;
     robot(i).v_m = odom_m(i).v_x;
     robot(i).omega_m = odom_m(i).omega;
+    if (odom_m(i).t == 3.71441e3)
+        disp(1);
+    end
     robot(i).t_m = odom_m(i).t;
 end
 

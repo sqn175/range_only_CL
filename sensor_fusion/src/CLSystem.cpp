@@ -45,6 +45,7 @@ void CLSystem::process(const measBasePtr& m) {
     // ESKF update and correct
     estimator_.process(m);
   }
+
 }
 
 void CLSystem::SetRobotStatesCallback(const std::function<void (std::map<int, Robot> robots)>& callback) {

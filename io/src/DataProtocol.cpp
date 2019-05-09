@@ -47,7 +47,7 @@ std::vector<measBasePtr> MessageParser::popMsgs() {
           gyro[i] = data.gyro[i] / 131.072;
         }
         measBasePtr imuM = std::make_shared<ImuMeasurement>(data.uwbId, t, acc, gyro);
-        measurements.push_back(imuM);
+        // measurements.push_back(imuM);
         break;
       }
       case MSG_TYPE_WHEEL : {

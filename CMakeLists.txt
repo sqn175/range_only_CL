@@ -10,6 +10,8 @@ set(RCL_VERSION
   ${RCL_MAJOR_VERSION}.${RCL_MINOR_VERSION}.${RCL_PATCH_VERSION})
 
 set(CMAKE_CXX_STANDARD 11)
+# TO debug some optimized code
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall  -O0 -march=native ")
 
 # Option for build configuration
 option (BUILD_APP "Builds the application" ON)
