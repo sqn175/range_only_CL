@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
 
     // Process the parsed measurements
     for (auto& i : m) {
-      VLOG(4) << "Receive measurement: " << i->type_ << ", t: " << i->timeStamp; 
+      VLOG(4) << "Receive measurement: " << i->type << ", t: " << i->timeStamp; 
       rclSystem.process(i);
     }
     

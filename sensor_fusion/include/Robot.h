@@ -9,7 +9,8 @@ class Robot {
     Robot(int id, double x, double y);
     Robot(int id, double x, double y, double phi);
 
-    void setOrientation(double phi);
+    void SetState(double x, double y, double phi);
+    void SetOrientation(double phi);
     int id() const;
 
   public:

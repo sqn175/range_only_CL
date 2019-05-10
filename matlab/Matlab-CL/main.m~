@@ -120,8 +120,8 @@ for r = 1:nRobots
     for j = window_len : odom_len - 2
         omega_energy(j) = sum(robot(r).omega_m(j-window_len+1:j).^2) / window_len;
 %         v_energy(j) = robot(r).v_m(j);
-        v_energy(j) = sum(robot(r).v_m(j-window_len+1 : j).^2) / window_len;
-        if (omega_energy(j) < 2e-3 && v_energy(j) > 0.03)
+        v_energy(j) = sum(robot(r).v_m(j-window_len+1 : j).^2) / wind
+        if (omega_energy(j) < 2e-3 && v_energy(j) > 0.1 && v_energy(j-window_len+1) > 0.1)
             if start_j == 0
                 start_j = j-window_len+1; 
                 flag(start_j:j-1) = 1;
@@ -156,7 +156,7 @@ for r = 1:nRobots
     end
     figure; hold on;
     plot(robot(r).omega_m);
-    plot(robot(r).v_m);
+    plot(robot(r).v_m,'r');
     plot(omega_energy);
     plot(v_energy);
     plot(range_m(2*r).range(1:5:end));

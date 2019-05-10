@@ -15,9 +15,12 @@ class PositionInitializer {
     }
     
     bool process(const measBasePtr& measurement);
-    std::map<int, Eigen::Vector2d> GetUwbPositions();
-    std::map<int, Eigen::Vector2d> GetAnchorPositions();
-    std::map<int, Eigen::Vector2d> GetRobotPositions();
+    std::map<int, Eigen::Vector2d> GetUwbPositions() const;
+    std::map<int, Eigen::Vector2d> GetAnchorPositions() const;
+    std::map<int, Eigen::Vector2d> GetRobotPositions() const;
+
+    std::set<int> GetRobotIds() const;
+    std::set<int> GetAnchorIds() const;
 
   private:
     void AddMeasurement(const measBasePtr& measurement);
@@ -43,3 +46,4 @@ class PositionInitializer {
     std::set<int> robotIds_;
     std::set<int> anchorIds_;
 };
+

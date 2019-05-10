@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Initializer.h"
+#include "PositionInitializer.h"
+#include "FakeHeadingSensor.h"
 #include "Robot.h"
 #include "Estimator.h"
 
@@ -18,10 +19,13 @@ class CLSystem {
     void SetRobotStatesCallback(const std::function<void (std::map<int, Robot> robots)>& callback);
     
   private:
+    void OnHeading(int robotId, std::vector<double> xyphi);
+  private:
     PositionInitializer positionIni_;
+    FakeHeadingSensor fakeHeadingSensor_;
     Estimator estimator_;
     bool positionInitialized_; // The position of the UWB anchors are initialized.
-    bool poseInitialized_;     // The pose of the moving UWB anchors are initialized.
+    std::map<int, bool> poseInitialized_;     // The pose of the moving UWB anchors are initialized.
     std::map<int, Eigen::Vector2d> anchorPositions_;
     std::map<int, Robot> robots_;
     NoiseParams noise_;

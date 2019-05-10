@@ -17,7 +17,7 @@ TEST(DataProtocolTest, wheelDataParser) {
   auto wheelMeasPtr = std::dynamic_pointer_cast<WheelMeasurement>(m.front());
 
   ASSERT_EQ(wheelMeasPtr->timeStamp, 3.71441e3);
-  ASSERT_EQ(wheelMeasPtr->type_, MeasurementType::WHEEL);
+  ASSERT_EQ(wheelMeasPtr->type, MeasurementType::WHEEL);
   ASSERT_EQ(wheelMeasPtr->uwbId, 1);
   ASSERT_NEAR(wheelMeasPtr->omega, 0.249439384788275, 1e-8);
   ASSERT_NEAR(wheelMeasPtr->v, 0.107156252488494, 1e-8);
@@ -45,7 +45,7 @@ TEST(DataProtocolTest, parserFile) {
     parser.pushData(data, input.gcount());
     auto tmp = parser.popMsgs();
     for (auto& m: tmp) {
-        switch (m->type_) {
+        switch (m->type) {
           case MeasurementType::IMU : {
             auto imuMeasPtr = std::dynamic_pointer_cast<ImuMeasurement>(m);
             imuMeas[imuMeasPtr->uwbId].push_back(imuMeasPtr);
@@ -62,7 +62,7 @@ TEST(DataProtocolTest, parserFile) {
             break;
           }
           default: {
-            LOG(WARNING) << "Unknown measurement type: " << m->type_;
+            LOG(WARNING) << "Unknown measurement type: " << m->type;
             break;
           }
         } 

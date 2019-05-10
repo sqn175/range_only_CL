@@ -1,4 +1,4 @@
-#include "Initializer.h"
+#include "PositionInitializer.h"
 #include "AncLocalization.h"
 
 #include "glog/logging.h"
@@ -11,7 +11,7 @@ bool PositionInitializer::process(const measBasePtr& m) {
 }
 
 void PositionInitializer::AddMeasurement(const measBasePtr& m) {
-  switch (m->type_) {
+  switch (m->type) {
     case MeasurementType::IMU : {
       auto imuMeasPtr = std::dynamic_pointer_cast<ImuMeasurement>(m);
       // We do not process IMU data
@@ -48,7 +48,7 @@ void PositionInitializer::AddMeasurement(const measBasePtr& m) {
       break;
     }
     default: {
-      LOG(WARNING) << "Unknown measurement type: " << m->type_;
+      LOG(WARNING) << "Unknown measurement type: " << m->type;
       break;
     }
   }
@@ -157,7 +157,7 @@ bool PositionInitializer::TryToInitialize() {
   return false;
 }
 
-std::map<int, Eigen::Vector2d> PositionInitializer::GetUwbPositions() {
+std::map<int, Eigen::Vector2d> PositionInitializer::GetUwbPositions() const{
   std::map<int, Eigen::Vector2d> res;
   if (uwbPositions_.data()) {
     assert(uwbIds_.size() == uwbPositions_.rows());
@@ -172,7 +172,7 @@ std::map<int, Eigen::Vector2d> PositionInitializer::GetUwbPositions() {
   return res;
 }
 
-std::map<int, Eigen::Vector2d> PositionInitializer::GetAnchorPositions() {
+std::map<int, Eigen::Vector2d> PositionInitializer::GetAnchorPositions() const{
   std::map<int, Eigen::Vector2d> res;
   if (uwbPositions_.data()) {
     assert(uwbIds_.size() == uwbPositions_.rows());
@@ -187,7 +187,7 @@ std::map<int, Eigen::Vector2d> PositionInitializer::GetAnchorPositions() {
   return res;
 }
 
-std::map<int, Eigen::Vector2d> PositionInitializer::GetRobotPositions() {
+std::map<int, Eigen::Vector2d> PositionInitializer::GetRobotPositions() const{
   std::map<int, Eigen::Vector2d> res;
   if (uwbPositions_.data()) {
     assert(uwbIds_.size() == uwbPositions_.rows());
@@ -200,4 +200,12 @@ std::map<int, Eigen::Vector2d> PositionInitializer::GetRobotPositions() {
     }
   }
   return res;
+}
+
+std::set<int> PositionInitializer::GetRobotIds() const {
+  return robotIds_;
+}
+
+std::set<int> PositionInitializer::GetAnchorIds() const {
+  return anchorIds_;
 }

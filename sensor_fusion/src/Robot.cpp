@@ -14,7 +14,13 @@ Robot::Robot(int id, double x, double y, double phi)
   , state_(x, y, phi) {
 }
 
-void Robot::setOrientation(double phi) {
+void Robot::SetState(double x, double y, double phi) {
+  state_.x_ = x;
+  state_.y_ = y;
+  state_.phi_ = phi;
+}
+
+void Robot::SetOrientation(double phi) {
   state_.phi_ = phi;
 }
 

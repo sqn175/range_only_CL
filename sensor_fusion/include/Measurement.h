@@ -7,7 +7,7 @@
 #include <memory>
 #include <iostream>
 
-enum class MeasurementType{UNKNOWN, IMU, WHEEL, UWB};
+enum class MeasurementType{UNKNOWN, IMU, WHEEL, UWB, HEADING};
 inline std::ostream& operator<< (std::ostream& os, const MeasurementType& m)
 {
     switch (m)
@@ -15,6 +15,7 @@ inline std::ostream& operator<< (std::ostream& os, const MeasurementType& m)
         case MeasurementType::IMU :    return os << "IMU" ;
         case MeasurementType::WHEEL:   return os << "WHEEL";
         case MeasurementType::UWB:     return os << "UWB";
+        case MeasurementType::HEADING: return os << "HEADING";
         case MeasurementType::UNKNOWN: return os << "UNKNOWN";
         // omit default case to trigger compiler warning for missing cases
     };
@@ -22,15 +23,15 @@ inline std::ostream& operator<< (std::ostream& os, const MeasurementType& m)
 }
 
 struct MeasurementBase {
-  MeasurementType type_;       
+  MeasurementType type;       
   double timeStamp;  // second
 
   MeasurementBase()
     : timeStamp(0)
-    , type_(MeasurementType::UNKNOWN) {
+    , type(MeasurementType::UNKNOWN) {
   }
-  MeasurementBase(MeasurementType type, double t)
-    : type_(type)
+  MeasurementBase(MeasurementType mType, double t)
+    : type(mType)
     , timeStamp(t) {
   }
   virtual ~MeasurementBase() {}
@@ -92,3 +93,19 @@ struct UwbMeasurement : public MeasurementBase {
 };
 
 using UwbMeasPtr = std::shared_ptr<UwbMeasurement>;
+
+struct HeadingMeasurement : public MeasurementBase {
+  int uwbId;
+  double phi; // heading, in meters
+
+  HeadingMeasurement()
+    : MeasurementBase() {
+
+  }
+
+  HeadingMeasurement(double t, uint8_t uwbId, double phi)
+    : MeasurementBase(MeasurementType::HEADING, t)
+    , uwbId(uwbId)
+    , phi(phi) {
+  }
+};

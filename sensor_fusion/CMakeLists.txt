@@ -4,10 +4,11 @@ project(sensor_fusion)
 set(SENSOR_FUSION_SRCS
   src/States.cpp
   src/AncLocalization.cpp
-  src/Initializer.cpp
+  src/PositionInitializer.cpp
   src/Estimator.cpp
   src/Robot.cpp
   src/CLSystem.cpp
+  src/FakeHeadingSensor.cpp
 )
 
 add_library(${PROJECT_NAME} ${SENSOR_FUSION_SRCS})
@@ -28,7 +29,8 @@ if (BUILD_TESTS)
     test/test_main.cpp
     test/States_test.cpp
     test/AncLocalization_test.cpp
-    test/EnergyDetector_test.cpp)
+    test/EnergyDetector_test.cpp
+    test/FakeHeadingSensor_test.cpp)
   target_link_libraries(${TEST_PROJECT_NAME}
     gtest
     ${PROJECT_NAME})

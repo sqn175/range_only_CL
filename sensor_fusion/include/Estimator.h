@@ -23,9 +23,10 @@ class Estimator {
     Estimator();
 
     void process(const measBasePtr& m);
-    void init(const NoiseParams& noises, std::map<int, Robot> iniRobots, 
-              std::map<int, Eigen::Vector2d> anchorPositions, double deltaSec);
-
+    void init(const std::map<int, Eigen::Vector2d>& anchorPositions, 
+              const NoiseParams& noises, double deltaSec);
+    void AddRobot(const Robot& r);
+    void reset();
     // Set the estimation callback, the callback will be called when a estimation is completed.
     void SetRobotStatesCallback(const std::function<void (std::map<int, Robot> robots)>& callback);
 
@@ -49,6 +50,7 @@ class Estimator {
     std::map<int, WheelMeasPtr> lastWheelMeas_;
     std::map<std::pair<int, int>, std::vector<UwbMeasPtr>> uwbMeasBuffer_;
     std::map<int, bool> statesPropagated_;  // States of Kalman filters
+    NoiseParams noises_;
 
     // Estimation complete callback
     std::function<void (std::map<int, Robot> robots)> robotStatesCallback_;
