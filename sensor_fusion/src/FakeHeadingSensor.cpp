@@ -12,10 +12,11 @@ void FakeHeadingSensor::init(const std::set<int>& anchorIds,
                               const std::set<int>& robotIds,
                               double baseLineLength) {
   anchorIds_ = anchorIds;
-  robotIds_ = robotIds_;
+  robotIds_ = robotIds;
   baseLineLength_ = baseLineLength;
 
-  windowLen_ = 40;
+  windowLen_ = 10;
+  uwbWindowLen_ = windowLen_ * 5; // TODO: parameters. 5 = uwb frequency / wheel encoder frequency
   for (auto& r : robotIds_) {
     velEnergy_[r] = Energy<double>(windowLen_);
     omegaEnergy_[r] = Energy<double>(windowLen_);
@@ -38,26 +39,40 @@ void FakeHeadingSensor::process(const measBasePtr& m) {
       velEnergy_[id].push_back(wheelMeasPtr->v);
       omegaEnergy_[id].push_back(wheelMeasPtr->omega);
 
-      if (omegaEnergy_[id].energy() < 2e-3 && velEnergy_[id].energy() > 0.03
+      if (omegaEnergy_[id].energy() < 1e-3 && velEnergy_[id].energy() > 0.03
           && omegaEnergy_[id].N() == windowLen_)  { // TODO: parameter
+        isLinearMotion_[id] = true;
         // The robot is linearly moving
         if (!isPrevLinearMotion_[id]) { // The robot starts a linear motion
-          LOG(INFO) << "Robot " << id << " starts a linear motion.";
+          LOG(INFO) << "Robot " << id << " detects a linear motion at " << m->timeStamp << "s.";
         } 
-        isLinearMotion_[id] = true;
       } else {
-        if (isPrevLinearMotion_[id]) {
-          // The robots ends a linear motion
-          LOG(INFO) << "Robot " << id << " ends a linear motion.";
-          // We now calculate its orientation using the ranges to the first two static anchors
-          auto xyphi = EstimateHeading(id);
-          LOG(INFO) << "Heading: " << xyphi[3]*180/M_PI << "degrees";
-
-          // Callback
-          if (headingCallback_) 
-            headingCallback_(id, xyphi);
-        }
+        // if (isPrevLinearMotion_[id] || rangeToAnchor0_[id].size() >= 2000) {
         isLinearMotion_[id] = false;
+        if (isPrevLinearMotion_[id]) {
+          // The robots ends a linear motion, or lasts a linear motion for 20 seconds (20*100)
+          // We now calculate its orientation using the ranges to the first two static anchors
+          auto pose = EstimateHeading(id);
+
+          LOG(INFO) << "Robot " << id << " ends linear motion at " << m->timeStamp << "s "
+                    << "with orientation = " << pose[2]*180/M_PI << " degrees";
+
+          // Erase the range buffer
+          assert(rangeToAnchor0_[id].size() >= uwbWindowLen_);
+          rangeToAnchor0_[id].erase(rangeToAnchor0_[id].begin(), 
+                                    rangeToAnchor0_[id].begin() + rangeToAnchor0_[id].size() - uwbWindowLen_);
+          rangeToAnchor1_[id].erase(rangeToAnchor1_[id].begin(), 
+                                    rangeToAnchor1_[id].begin() + rangeToAnchor1_[id].size() - uwbWindowLen_);
+          
+          // Callback
+          if (headingCallback_) {
+            std::vector<double> res{m->timeStamp};
+            res.insert(res.end(), 
+                        std::make_move_iterator(pose.begin()), 
+                        std::make_move_iterator(pose.end()));
+            headingCallback_(id, res);
+          }
+        } 
       }
       isPrevLinearMotion_[id] = isLinearMotion_[id];
       break;
@@ -91,12 +106,12 @@ void FakeHeadingSensor::process(const measBasePtr& m) {
       if (indexAnchor == 0) {
         rangeToAnchor0_[robotId].push_back(uwbMeasPtr->range);
         // The robot is not linearly moving, we then only keep the ranges in the window
-        if (!isLinearMotion_[robotId] && rangeToAnchor0_.size() > windowLen_) {
+        if (!isLinearMotion_[robotId] && rangeToAnchor0_.size() > uwbWindowLen_) {
           rangeToAnchor0_[robotId].pop_front();
         }
       } else if (indexAnchor == 1) {
         rangeToAnchor1_[robotId].push_back(uwbMeasPtr->range);
-        if (!isLinearMotion_[robotId] && rangeToAnchor1_.size() > windowLen_) {
+        if (!isLinearMotion_[robotId] && rangeToAnchor1_.size() > uwbWindowLen_) {
           rangeToAnchor1_[robotId].pop_front();
         }
       }
@@ -120,7 +135,7 @@ std::vector<double> FakeHeadingSensor::EstimateHeading(int robotId) {
   double range1End = coeff[0] * rangeToAnchor1_[robotId].size() + coeff[1];
 
   Eigen::Matrix<double, 2,2> r;
-  r << range0Start, range1Start, range0End, range0End;
+  r << range0Start, range1Start, range0End, range1End;
 
   return CalculateHeading(r);
 }
@@ -152,6 +167,7 @@ std::vector<double> FakeHeadingSensor::CalculateHeading(const Eigen::Matrix<doub
   std::vector<double> res;
   res.reserve(3);
 
+  // Start point position and end point position
   Eigen::Matrix<double, 2,2> pos;
   for (int i = 0; i < 2; ++i) {
     double cosAlpha = (d(i,0)*d(i,0) + baseLineLength_*baseLineLength_ - d(i,1)*d(i,1)) 
@@ -171,8 +187,11 @@ std::vector<double> FakeHeadingSensor::CalculateHeading(const Eigen::Matrix<doub
   res.push_back(pos(1,0));
   res.push_back(pos(1,1));
   res.push_back(phi);
+
+  return res;
 }
 
-void FakeHeadingSensor::SetRobotHeadingCallback(const std::function<void (int robotId, std::vector<double> xyphi)>& callback) {
+void FakeHeadingSensor::SetRobotHeadingCallback(const std::function<
+          void (int robotId, std::vector<double> res)>& callback) {
   headingCallback_ = callback;
 }

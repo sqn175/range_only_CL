@@ -18,16 +18,21 @@ class FakeHeadingSensor {
               const std::set<int>& robotIds,
               double baseLineLength);
     void process(const measBasePtr& measurement);
-    void SetRobotHeadingCallback(const std::function<void (int robotId, std::vector<double> xyphi)>& callback);
+
+    // res: t, x, y, phi
+    void SetRobotHeadingCallback(const std::function<
+                      void (int robotId, std::vector<double> res)>& callback);
   public:
     std::vector<double> EstimateHeading(int robotId);
     std::vector<double> LinearFit(const std::deque<double>& data);
-    // Return orientation in radius
+
+    // Return: pose:[x,y,phi]
     std::vector<double> CalculateHeading(const Eigen::Matrix<double, 2,2>& range);
     
     std::map<int, Energy<double>> velEnergy_;
     std::map<int, Energy<double>> omegaEnergy_;
     int windowLen_;
+    int uwbWindowLen_;
 
     std::map<int, std::deque<double>> rangeToAnchor0_;
     std::map<int, std::deque<double>> rangeToAnchor1_;
@@ -40,5 +45,5 @@ class FakeHeadingSensor {
     std::map<int, bool> isPrevLinearMotion_;
 
     // Heading estimation callback
-    std::function<void (int robotId, std::vector<double> xyphi)> headingCallback_;
+    std::function<void (int robotId, std::vector<double> res)> headingCallback_;
 };

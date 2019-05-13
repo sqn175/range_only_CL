@@ -9,6 +9,12 @@
 Estimator::Estimator() {
 }
 
+Estimator::~Estimator() {
+  // Clear callbacks
+  std::function<void (std::map<int, Robot> robots)> empty;
+  robotStatesCallback_.swap(empty);
+}
+
 void Estimator::init(const std::map<int, Eigen::Vector2d>& anchorPositions, 
                     const NoiseParams& noises, double deltaSec) {
   noises_ = noises;

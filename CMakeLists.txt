@@ -47,25 +47,27 @@ add_dependencies(io sensor_fusion)
 
 # Build the app
 if (BUILD_APP)
-  download_project( PROJ                matplot
-                    GIT_REPOSITORY      https://github.com/lava/matplotlib-cpp.git
+  # Download Pangolin for results display
+  download_project( PROJ                pangolin
+                    GIT_REPOSITORY      https://github.com/stevenlovegrove/Pangolin.git
                     GIT_TAG             master
-                    PREFIX              ${CMAKE_BINARY_DIR}/third_party/matplot
+                    PREFIX              ${CMAKE_BINARY_DIR}/third_party/pangolin
                     UPDATE_DISCONNECTED 1
   )
+  add_subdirectory(${pangolin_SOURCE_DIR} ${pangolin_BINARY_DIR})
 
-  find_package(PythonLibs 2.7 REQUIRED)
   add_executable(${PROJECT_NAME}_sync_app apps/src/sync_app_main.cpp)
-  target_include_directories(${PROJECT_NAME}_sync_app PRIVATE
+  target_include_directories(${PROJECT_NAME}_sync_app PUBLIC
     io/include
     sensor_fusion/include
-    ${matplot_SOURCE_DIR}
-    ${PYTHON_INCLUDE_DIRS})
+    ${pangolin_SOURCE_DIR}/include
+  )
   # Link libraties
   target_link_libraries(${PROJECT_NAME}_sync_app
     io
     sensor_fusion
-    ${PYTHON_LIBRARIES})
+    pangolin
+    )
 endif()
 
 if (BUILD_TESTS)

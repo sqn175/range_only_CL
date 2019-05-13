@@ -21,6 +21,7 @@ struct NoiseParams{
 class Estimator {
   public:
     Estimator();
+    ~Estimator();
 
     void process(const measBasePtr& m);
     void init(const std::map<int, Eigen::Vector2d>& anchorPositions, 

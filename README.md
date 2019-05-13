@@ -9,7 +9,7 @@ RCL (Range-only Collaborative localization) is a real-time localization system f
   
 Optional (if you build the app with GUI):
 - OpenGL (Desktop / ES / ES2)
-- Matplot: `sudo apt-get install python-matplotlib python-numpy python2.7-dev`
+- Glew: `sudo apt-get install libglew-dev`
 
 ## System requirement
 The system is required to be Little Endian. The program is tested on Ubuntu 16.04.

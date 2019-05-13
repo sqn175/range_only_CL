@@ -43,8 +43,6 @@ void PositionInitializer::AddMeasurement(const measBasePtr& m) {
         uwbIds_.insert(idPair.second); 
       }
 
-      LOG_EVERY_N(INFO, 1) << "[" << std::to_string(idPair.first) << "," 
-            << std::to_string(idPair.second) << "]: " << uwbMeasPtr->range << "m";
       break;
     }
     default: {
@@ -72,9 +70,9 @@ bool PositionInitializer::TryToInitialize() {
   // If we have enough range measurements and any a anchor is moving,
   // We try to localize the moving anchors and the static anchors.
   if (rangeAllReady && !anyMoving) {
-    LOG_EVERY_N(INFO, 500) << "Wait for anchors moving in a straight line...";
+    LOG_EVERY_N(INFO, 500) << "Wait for robots moving in a straight line...";
   } else if (!rangeAllReady && anyMoving) {
-    LOG(FATAL) << "Anchors need to remain static during initialization. Please RESTART the program!";
+    LOG(FATAL) << "Robots need to remain static during initialization. Please RESTART the program!";
   } else if (rangeAllReady && anyMoving) {
     // Time to initialize the position of anchors and establish a coordinate
 
@@ -112,12 +110,6 @@ bool PositionInitializer::TryToInitialize() {
         idPairs.push_back(idPair);
         ranges.push_back(meanRange_[idPair].mean());
       }
-    }
-
-    LOG(INFO) << "Id pair -> range";
-    assert(idPairs.size() == ranges.size());
-    for (int i = 0; i < idPairs.size(); ++i) {
-      LOG(INFO) << "[" << idPairs[i].first << ", " << idPairs[i].second << "] -> " << ranges[i];
     }
 
     // Construct the adjacent matrix of range
