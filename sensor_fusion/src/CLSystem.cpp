@@ -123,7 +123,7 @@ void CLSystem::OnStatesEstimated(std::map<int, Robot> robots) {
     pose.yaw = r.second.state_.phi_;
     res.push_back(pose);
   }
-  estimationResults_.PushNonBlocking(res);
+  estimationResults_.PushBlockingIfFull(res, 1);
 }
 
 void CLSystem::SetStatesCallback(const std::function<void (std::vector<PoseResults>)>& callback) {
