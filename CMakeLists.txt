@@ -47,6 +47,8 @@ add_dependencies(io sensor_fusion)
 
 # Build the app
 if (BUILD_APP)
+
+  # build the post process application
   download_project( PROJ                matplot
                     GIT_REPOSITORY      https://github.com/lava/matplotlib-cpp.git
                     GIT_TAG             master
@@ -55,14 +57,31 @@ if (BUILD_APP)
   )
 
   find_package(PythonLibs 2.7 REQUIRED)
-  add_executable(${PROJECT_NAME}_post_process_app apps/src/_post_process_app_main)
-  target_include_directories(${PROJECT_NAME}_post_process_app PRIVATE
+  set(POST_APP_NAME ${PROJECT_NAME}_post_process_app)
+  add_executable(${POST_APP_NAME} apps/src/post_process_app_main)
+  target_include_directories(${POST_APP_NAME} PRIVATE
                               io/include
                               sensor_fusion/include
+                              apps/include
                               ${matplot_SOURCE_DIR}
                               ${PYTHON_INCLUDE_DIRS})
   # Link libraties
-  target_link_libraries(${PROJECT_NAME}_post_process_app
+  target_link_libraries(${POST_APP_NAME}
+                        io
+                        sensor_fusion
+                        ${PYTHON_LIBRARIES})
+
+  # build the real-time process application
+  set(REALTIME_APP_NAME ${PROJECT_NAME}_realtime_process_app)
+  add_executable(${REALTIME_APP_NAME} apps/src/realtime_app_main)
+  target_include_directories(${REALTIME_APP_NAME} PRIVATE
+                              io/include
+                              sensor_fusion/include
+                              apps/include
+                              ${matplot_SOURCE_DIR}
+                              ${PYTHON_INCLUDE_DIRS})
+  # Link libraties
+  target_link_libraries(${REALTIME_APP_NAME}
                         io
                         sensor_fusion
                         ${PYTHON_LIBRARIES})

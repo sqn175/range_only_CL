@@ -6,25 +6,39 @@
 #include "Estimator.h"
 #include "ThreadSafeQueue.h"
 
+// Estimation results for a robot
 struct PoseResults {
-  int id;
-  float x;
-  float y;
-  float yaw;
+  int id;    // uwb id
+  float x;   // meter
+  float y;   // meter
+  float yaw; // radius
 };
 
 class CLSystem {
+/*
+  This class manages the complete data flow in and out of the algorithm.
+
+  To ensure fast return from user callbacks, new data are collected in thread safe input queue
+  and are processed in consumer thread. 
+  The algorithm task are running in a individual thread with a thread safe queue for message passing.
+  For sending back data to the user, a publisher thread are created which ensure that the algorithm 
+  is not blocked by slow users.
+*/
+
   public:
     CLSystem(const NoiseParams& noise, double deltaSec);
     ~CLSystem();
 
+    // Add a new measurement
     bool AddMeasurement(const measBasePtr& m);
 
-    // Callbacks are not thread-safe
+    // Set the iniStatesCallback_ to be called when the position of anchors and the initial 
+    // positions of all robots are estimated.
     void SetIniStatesCallback(const std::function<void (std::map<int, Robot>, 
                                                         std::map<int, Eigen::Vector2d> 
                                                        )>& callback);
 
+    // Set the statesCallback_ to be called every time the states of all robots updated.
     void SetStatesCallback(const std::function<void (std::vector<PoseResults>)>& callback);
     
     // noncopyable
@@ -64,7 +78,6 @@ class CLSystem {
     ThreadSafeQueue<std::vector<PoseResults>> estimationResults_;
     // Measurement input queue
     ThreadSafeQueue<measBasePtr> measurements_;
-
 
     // Estimation main thread
     std::thread consumerThread_;
