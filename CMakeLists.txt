@@ -10,6 +10,9 @@ set(RCL_VERSION
   ${RCL_MAJOR_VERSION}.${RCL_MINOR_VERSION}.${RCL_PATCH_VERSION})
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # TO debug some optimized code
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall  -O0 -march=native ")
 

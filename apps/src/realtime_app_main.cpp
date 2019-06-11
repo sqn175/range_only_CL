@@ -34,7 +34,7 @@ class MainSystem {
     }
 
     void SavingAndFeedingLoop() {
-      std::string serialPortName = "/dev/pts/27";
+      std::string serialPortName = "/dev/ttyACM0";
       unsigned int baudRate = 115200;
       CallbackAsyncSerial serial(serialPortName, baudRate);
 

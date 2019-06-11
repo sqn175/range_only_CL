@@ -50,6 +50,7 @@ void Estimator::process(const measBasePtr& m) {
       // We do not process IMU data
       break;
     }
+    
     // TODO: how to handle asynchronous measurements
     case MeasurementType::WHEEL : {
       auto wheelMeasPtr = std::dynamic_pointer_cast<WheelMeasurement>(m);
@@ -80,8 +81,8 @@ void Estimator::process(const measBasePtr& m) {
         // 1. ESKF predict 
         // 1.1 State propagation
 
-        auto singlePhi = robots_[id].state_.propagate(lastWheelMeas_[id]->v, -lastWheelMeas_[id]->omega,
-                                     wheelMeasPtr->v, -wheelMeasPtr->omega, deltaSec);
+        auto singlePhi = robots_[id].state_.propagate(lastWheelMeas_[id]->v, lastWheelMeas_[id]->omega,
+                                     wheelMeasPtr->v, wheelMeasPtr->omega, deltaSec);
         
         auto itRobot = robots_.find(id);
         assert(itRobot != robots_.end());

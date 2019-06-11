@@ -11,7 +11,7 @@
 
 void measurementFeedingLoop(CLSystem* rclSystem, Viewer* viewer) {
   MessageParser parser;
-  std::string fileName = "/home/qin/Documents/range_only_CL/datasets/20190418/pc.txt";
+  std::string fileName = "/home/qin/Documents/range_only_CL/datasets/test.txt";
   std::ifstream dataFile(fileName, std::ios::binary);
   char data[64];  // File read buffer
   if (!dataFile.good()) {
@@ -30,7 +30,7 @@ void measurementFeedingLoop(CLSystem* rclSystem, Viewer* viewer) {
       rclSystem->AddMeasurement(i);
     }
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(40 ));
   }
 
   std::cout << "Press Enter to Quit";
