@@ -6,9 +6,9 @@ set(0,'defaultAxesFontSize',16)
 %% User input variables
 % ---------------------
 % All UWB IDs = anchorIDs + robotIDs
-UWBIDs = [0 2 3]; 
+UWBIDs = [0 1 2 4]; 
 % Robot IDs
-robotIDs = [3];
+robotIDs = [1 4];
 % 1, read data from file; 0, load data from "data.mat"
 readfile_flag = 1;
 % Figure plot flags
@@ -23,8 +23,9 @@ nAnchor = length(anchorIDs);
 
 if readfile_flag
 
-[UWBFilename, filePath] = uigetfile('*.txt','Select UWB hex data file');
-addpath(filePath);
+UWBFilename = '/home/qin/Documents/range_only_CL/datasets/test.txt';
+% [UWBFilename, filePath] = uigetfile('*.txt','Select UWB hex data file');
+% addpath(filePath);
 
 [range_m, imu_m, odom_m] = hexdumpUWB(UWBFilename, UWBIDs, robotIDs);
 
@@ -33,6 +34,7 @@ for i = 1:nRobot
     odom_m(i).v_x = odom_m(i).Delta(:,1) ./ odom_m(i).int * 1000;
     odom_m(i).v_y = odom_m(i).Delta(:,2) ./ odom_m(i).int * 1000;
     odom_m(i).omega = odom_m(i).Delta(:,3) ./ odom_m(i).int * 1000;
+    robot(i).id = robotIDs(i);
     robot(i).v_m = odom_m(i).v_x;
     robot(i).omega_m = odom_m(i).omega;
     robot(i).t_m = odom_m(i).t;

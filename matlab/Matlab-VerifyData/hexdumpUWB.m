@@ -18,7 +18,7 @@ end
 pairs = 0;
 for i = 1:nUWB
     for j = i+1:nUWB
-        pairs = pairs + 1;
+        pairs = pairs + 1; 
         range_m(pairs).pair = [UWBIDs(i),UWBIDs(j)];
         range_m(pairs).range = [];
         range_m(pairs).t = [];
@@ -44,6 +44,9 @@ while (true)
         fseek(fid, msgLen+1, 'cof');
         if ftell(fid) ~= -1
             fseek(fid, -(msgLen+1), 'cof');
+%             [bin, cnt] = fread(fid, msgLen+1, 'uint8');
+%             disp(bin');
+%             fseek(fid, -(msgLen+1), 'cof');
         else
             disp('Read to file end');
             break;
@@ -57,8 +60,8 @@ while (true)
                 accgyro = fread(fid, 6, 'int16');
                 for r = 1:nUWB
                     if anchorId == imu_m(r).id
-                        imu_m(r).t = [imu_m(r).t; timestamp];
-                        imu_m(r).data = [imu_m(r).data; accgyro'];
+                        imu_m(r).t(end+1) = timestamp;
+                        imu_m(r).data(end+1, :) = accgyro';
                     end
                 end
             case 2 % Odom
@@ -68,9 +71,9 @@ while (true)
                 
                 for r = 1:nRobot
                     if anchorId == odom_m(r).id
-                        odom_m(r).t = [odom_m(r).t; timestamp];
-                        odom_m(r).int = [odom_m(r).int; odomInt];
-                        odom_m(r).Delta = [odom_m(r).Delta; odomDelta'];
+                        odom_m(r).t(end+1) = timestamp;
+                        odom_m(r).int(end+1) = odomInt;
+                        odom_m(r).Delta(end+1, :) = odomDelta';
                     end
                 end
             case 3 % UWB range
@@ -78,16 +81,16 @@ while (true)
                 range = fread(fid, 1, 'double');
                 for p = 1:pairs
                     if anchorIds(1) == range_m(p).pair(1) && anchorIds(2) == range_m(p).pair(2)
-                        range_m(p).range = [range_m(p).range; range];
-                        range_m(p).t = [range_m(p).t; timestamp];
+                        range_m(p).range(end+1) = range;
+                        range_m(p).t(end+1) = timestamp;
                     end
                 end
             otherwise
-                error(['Invalid message type: ', num2str(msgType)]);
+                disp(['Invalid message type: ', num2str(msgType)]);
         end
         tail = fread(fid, 1, 'uint8');
         if tail ~= 221
-            error('Invalid message tail');
+            disp('Invalid message tail');
         end
     else
          fseek(fid, -1, 'cof');
