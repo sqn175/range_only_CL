@@ -45,7 +45,8 @@ while (true)
         if ftell(fid) ~= -1
             fseek(fid, -(msgLen+1), 'cof');
 %             [bin, cnt] = fread(fid, msgLen+1, 'uint8');
-%             disp(bin');
+%             disp('Message:');
+%             disp(dec2hex(bin));
 %             fseek(fid, -(msgLen+1), 'cof');
         else
             disp('Read to file end');
