@@ -8,6 +8,7 @@
 
 // Estimation results for a robot
 struct PoseResults {
+  double timeStamp; // time 
   int id;    // uwb id
   float x;   // meter
   float y;   // meter

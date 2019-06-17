@@ -11,7 +11,7 @@
 
 void measurementFeedingLoop(CLSystem* rclSystem, Viewer* viewer) {
   MessageParser parser;
-  std::string fileName = "/home/qin/Documents/range_only_CL/datasets/test.txt";
+  std::string fileName = "/home/qin/Documents/range_only_CL/datasets/rawMeasurements.txt";
   std::ifstream dataFile(fileName, std::ios::binary);
   char data[64];  // File read buffer
   if (!dataFile.good()) {

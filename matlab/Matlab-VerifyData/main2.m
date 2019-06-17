@@ -6,9 +6,9 @@ set(0,'defaultAxesFontSize',16)
 %% User input variables
 % ---------------------
 % All UWB IDs = anchorIDs + robotIDs
-UWBIDs = [0 1 2 4]; 
+UWBIDs = [0 1 3 2 4]; 
 % Robot IDs
-robotIDs = [1 4];
+robotIDs = [1 3 4];
 % 1, read data from file; 0, load data from "data.mat"
 readfile_flag = 1;
 % Figure plot flags
@@ -23,7 +23,7 @@ nAnchor = length(anchorIDs);
 
 if readfile_flag
 
-UWBFilename = '/home/qin/Documents/range_only_CL/datasets/test.txt';
+UWBFilename = '/home/qin/Documents/range_only_CL/datasets/rawMeasurements.txt';
 % [UWBFilename, filePath] = uigetfile('*.txt','Select UWB hex data file');
 % addpath(filePath);
 

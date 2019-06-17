@@ -60,6 +60,8 @@ void Estimator::process(const measBasePtr& m) {
       if (it == robots_.end())
         break;
 
+      it->second.SetTimestamp(wheelMeasPtr->timeStamp);
+
       if (lastWheelMeas_[id]) {// Not null 
         double deltaSec = wheelMeasPtr->timeStamp - lastWheelMeas_[id]->timeStamp;
 

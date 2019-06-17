@@ -4,11 +4,18 @@
 
 #include <mutex>
 #include <thread>
+#include <fstream>
 
 namespace plt = matplotlibcpp;
 class Viewer {
   public:
     Viewer() {
+      std::string fileName = "/home/qin/Documents/range_only_CL/datasets/res.txt";
+      file_ = std::move(std::ofstream(fileName, std::ios::binary));
+      if (!file_.good()) {
+        LOG(ERROR) << "Open file failed" << fileName;
+      }
+
       shouldQuit_ = false;
     }
     ~Viewer() {
@@ -40,6 +47,8 @@ class Viewer {
       arrowU_.clear();
       arrowV_.clear();
       for (auto&r : res) {
+        file_ << r.timeStamp << "," << r.id << "," << r.x << "," << r.y << "," << r.yaw << std::endl;
+
         int rId = r.id;
         if (x_[rId].size() >= 1e6) {
           x_[rId].erase(x_[rId].begin());
@@ -146,4 +155,6 @@ class Viewer {
     std::mutex mutex_;
 
     std::atomic_bool shouldQuit_;
+
+    std::ofstream file_;
 };

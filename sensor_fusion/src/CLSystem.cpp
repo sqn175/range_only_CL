@@ -117,6 +117,7 @@ void CLSystem::OnStatesEstimated(std::map<int, Robot> robots) {
   std::vector<PoseResults> res;
   for (auto& r : robots) {
     PoseResults pose;
+    pose.timeStamp = r.second.t();
     pose.id = r.first;
     pose.x = r.second.state_.x_;
     pose.y = r.second.state_.y_;

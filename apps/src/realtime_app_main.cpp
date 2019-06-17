@@ -11,7 +11,7 @@ class MainSystem {
   public:
     MainSystem(CLSystem* rcl)
       : rclSystem(rcl) {
-      std::string fileName = "/home/qin/Documents/range_only_CL/datasets/test.txt";
+      std::string fileName = "/home/qin/Documents/range_only_CL/datasets/rawMeasurements.txt";
       file_ = std::move(std::ofstream(fileName, std::ios::binary));
       if (!file_.good()) {
         LOG(ERROR) << "Open file failed" << fileName;

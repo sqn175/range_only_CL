@@ -27,3 +27,11 @@ void Robot::SetOrientation(double phi) {
 int Robot::id() const {
   return id_;
 }
+
+void Robot::SetTimestamp(double t) {
+  timeStamp_ = t;
+}
+
+double Robot::t() const {
+  return timeStamp_;
+}

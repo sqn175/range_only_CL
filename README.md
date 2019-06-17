@@ -5,7 +5,7 @@ RCL (Range-only Collaborative localization) is a real-time localization system f
 - C++11
 - Build essential: `sudo apt-get install build-essential`
 - CMake: `sudo apt-get install cmake`
-- Boost: `sudo apt-get install libboost-dev`
+- Boost: `sudo apt-get install libboost-all-dev`
   
 if you build the apps:
 - matplotlib-cpp: `sudo apt-get install python-matplotlib python-numpy python2.7-dev`
