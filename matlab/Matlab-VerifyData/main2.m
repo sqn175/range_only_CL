@@ -6,7 +6,7 @@ set(0,'defaultAxesFontSize',16)
 %% User input variables
 % ---------------------
 % All UWB IDs = anchorIDs + robotIDs
-UWBIDs = [0 1 3 2 4]; 
+UWBIDs = [0 1 2 3 4]; 
 % Robot IDs
 robotIDs = [1 3 4];
 % 1, read data from file; 0, load data from "data.mat"
@@ -67,8 +67,6 @@ for i = 1:pairs
     end
     range_m(i).range(index) = range_m(i).range(index-1);
 end
-
-save('data.mat', 'robot', 'range_m');
 
 else
     % Load data from workspcae

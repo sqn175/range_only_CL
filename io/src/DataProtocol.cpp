@@ -67,7 +67,7 @@ std::vector<measBasePtr> MessageParser::popMsgs() {
 
         // Calibration of UWB broadcast two way ranging results.
         // Here we simply add a constant bias, a more complex calibration model will be utilized.
-        double range = data.range + 0.5158; // TODO: range calibration parameters 
+        double range = 0.9214 * data.range + 0.6211; // TODO: range calibration parameters 
 
         // TODO: add simple outlier rejection
         measBasePtr uwbM = std::make_shared<UwbMeasurement>(t, data.uwbId1, data.uwbId2, range);

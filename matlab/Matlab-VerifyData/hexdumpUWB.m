@@ -8,6 +8,11 @@ for r = 1:nUWB
     imu_m(r).t = [];
     imu_m(r).data = [];
 end
+
+if nRobot == 0
+    odom_m = 0;
+end
+    
 for r = 1:nRobot
     odom_m(r).id = robotIDs(r);
     odom_m(r).t = [];
@@ -27,9 +32,11 @@ end
 
 fid = fopen(filename,'r');
 %fseek(fid, 500, 'bof'); % Skip the first 1000 bytes
+readCnt = 0;
 
 while (true)
     [head, cnt] = fread(fid, 2, 'uint8');
+    readCnt = readCnt + cnt;
     if cnt ~= 2
         disp('Read to file end');
         break;
@@ -38,26 +45,31 @@ while (true)
     if head(1) == 165 && head(2) == 90
         % Message type, 0x01 IMU; 0x02: Odom; 0x03 UWB range
         [msgLen,cnt] = fread(fid, 1, 'uint8'); 
-        if cnt~= 1 
-            break; 
-        end
-        fseek(fid, msgLen+1, 'cof');
-        if ftell(fid) ~= -1
-            fseek(fid, -(msgLen+1), 'cof');
-%             [bin, cnt] = fread(fid, msgLen+1, 'uint8');
-%             disp(bin');
-%             fseek(fid, -(msgLen+1), 'cof');
-        else
+        if cnt ~= 1
             disp('Read to file end');
             break;
         end
+        readCnt = readCnt + 1;
+
+        ret = fseek(fid, msgLen+1, 'cof');
+        if ret ~= 0
+            disp('Read to file end');
+            break;
+        else
+            fseek(fid, -(msgLen+1), 'cof');
+        end
+            
         msgType = fread(fid, 1, 'uint8');
+        readCnt = readCnt + 1;
         timestamp = fread(fid, 1, 'uint32');
+        readCnt = readCnt + 4;
         timestamp = timestamp / 1000; % Convert form ms to sec
         switch msgType
             case 1 % IMU
                 anchorId = fread(fid, 1, 'uint8');
+                readCnt = readCnt +  1;
                 accgyro = fread(fid, 6, 'int16');
+                readCnt = readCnt +  12;
                 for r = 1:nUWB
                     if anchorId == imu_m(r).id
                         imu_m(r).t(end+1) = timestamp;
@@ -66,8 +78,11 @@ while (true)
                 end
             case 2 % Odom
                 anchorId = fread(fid, 1, 'uint8');
+                readCnt = readCnt +  1;
                 odomInt = fread(fid, 1, 'uint8');
+                readCnt = readCnt +  1;
                 odomDelta = fread(fid, 3, 'float32');
+                readCnt = readCnt + 12;
                 
                 for r = 1:nRobot
                     if anchorId == odom_m(r).id
@@ -78,7 +93,9 @@ while (true)
                 end
             case 3 % UWB range
                 anchorIds = fread(fid, 2, 'uint8');
+                readCnt = readCnt + 2;
                 range = fread(fid, 1, 'double');
+                readCnt = readCnt + 8;
                 for p = 1:pairs
                     if anchorIds(1) == range_m(p).pair(1) && anchorIds(2) == range_m(p).pair(2)
                         range_m(p).range(end+1) = range;
@@ -89,6 +106,8 @@ while (true)
                 disp(['Invalid message type: ', num2str(msgType)]);
         end
         tail = fread(fid, 1, 'uint8');
+        
+        readCnt = readCnt + 1;
         if tail ~= 221
             disp('Invalid message tail');
         end

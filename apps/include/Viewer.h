@@ -5,6 +5,7 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
+#include <string>
 
 namespace plt = matplotlibcpp;
 class Viewer {
@@ -71,10 +72,13 @@ class Viewer {
     }
 
     void PlottingLoop() {
+      plt::figure_size(1920, 1080);
       plt::title("Collaborative Localization");
+      plt::grid(true);
       plt::axis("equal");
 
       while (1) {
+
         if (shouldQuit_)
           return;
         // Clear previous plot
@@ -84,15 +88,19 @@ class Viewer {
 
         // Plot anchors
         for (auto& anc : ancPositions_) {
-          plt::plot(std::vector<double>{anc.second(0)}, std::vector<double>{anc.second(1)});
-          plt::text(anc.second(0), anc.second(1), "Anchor " + std::to_string(anc.first));
+          char s[100];
+          sprintf(s, "Anchor %d [%.2f, %.2f]", anc.first, anc.second(0), anc.second(1) );
+          plt::plot(std::vector<double>{anc.second(0)}, std::vector<double>{anc.second(1)}, "r*");
+          plt::text(anc.second(0) + 0.01, anc.second(1) + 0.01, s);
         }
 
         for (auto& r: x_) {
           int rId = r.first;
           // Plot robot trajectories
           plt::plot(x_[rId], y_[rId]);
-          plt::text(x_[rId].back(), y_[rId].back(), "Robot " + std::to_string(rId));
+          char s[100];
+          sprintf(s, "Robot %d [%.2f, %.2f, %.2f]", rId, x_[rId].back(), y_[rId].back(), yaw_[rId].back());
+          plt::text(x_[rId].back(), y_[rId].back(), s);
         }
 
         ResizeWindow();
@@ -136,7 +144,7 @@ class Viewer {
         if (ancY > yMax)
           yMax = ancY;
       }
-      plt::xlim(xMin - 0.5, xMax + 0.5);
+      plt::xlim(xMin - 0.5, xMax + 1);
       plt::ylim(yMin - 0.2, yMax + 0.2);
     }
 

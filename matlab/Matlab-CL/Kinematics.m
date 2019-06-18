@@ -1,5 +1,20 @@
 classdef Kinematics
     methods(Static = true)
+        function q = toQuaternion(yaw, pitch, roll) % yaw (Z), pitch (Y), roll (X)
+                % Abbreviations for the various angular functions
+                cy = cos(yaw * 0.5);
+                sy = sin(yaw * 0.5);
+                cp = cos(pitch * 0.5);
+                sp = sin(pitch * 0.5);
+                cr = cos(roll * 0.5);
+                sr = sin(roll * 0.5);
+            
+                q = zeros(4,1);
+                q(1) = cy * cp * cr + sy * sp * sr;
+                q(2) = cy * cp * sr - sy * sp * cr;
+                q(3) = sy * cp * sr + cy * sp * cr;
+                q(4) = sy * cp * cr - cy * sp * sr;
+        end
     
         function rotm = eulerZXY2rotm(eul)
             % converts ZXY sequence Euler angles in radians, eul, to the corresponding ..
