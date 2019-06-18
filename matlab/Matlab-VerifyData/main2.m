@@ -29,35 +29,7 @@ UWBFilename = '/home/qin/Documents/range_only_CL/datasets/rawMeasurements.txt';
 
 [range_m, imu_m, odom_m] = hexdumpUWB(UWBFilename, UWBIDs, robotIDs);
 
-
-for i = 1:nRobot
-    odom_m(i).v_x = odom_m(i).Delta(:,1) ./ odom_m(i).int * 1000;
-    odom_m(i).v_y = odom_m(i).Delta(:,2) ./ odom_m(i).int * 1000;
-    odom_m(i).omega = odom_m(i).Delta(:,3) ./ odom_m(i).int * 1000;
-    robot(i).id = robotIDs(i);
-    robot(i).v_m = odom_m(i).v_x;
-    robot(i).omega_m = odom_m(i).omega;
-    robot(i).t_m = odom_m(i).t;
-end
-
-% Save data to workspace
-% Pre-process, outlier reject
-for i = 1:nRobot
-    odom_len = length(odom_m(i).v_x);
-    for j = 1:odom_len
-        if abs(robot(i).v_m(j)) > 1e6
-            disp("Outlier v:");
-            disp(robot(i).v_m(j));
-            robot(i).v_m(j) = robot(i).v_m(j-1);
-        end
-        if abs(robot(i).omega_m(j)) > 1e6
-            disp("Outlier omega:");
-            disp(robot(i).omega_m(j));
-            robot(i).omega_m(j) = robot(i).omega_m(j-1);
-        end
-    end
-end
-pairs = nUWB*(nUWB-1)/2;
+%% Plot UWB range data
 % simple range rejection
 for i = 1:pairs
     index = find(range_m(i).range > 1e5);
@@ -170,6 +142,55 @@ for i = 1:nRobot
         end
     end
 end
+
+%%
+for i = 1:nRobot
+    odom_m(i).v_x = odom_m(i).Delta(:,1) ./ odom_m(i).int * 1000;
+    odom_m(i).v_y = odom_m(i).Delta(:,2) ./ odom_m(i).int * 1000;
+    odom_m(i).omega = odom_m(i).Delta(:,3) ./ odom_m(i).int * 1000;
+    robot(i).id = robotIDs(i);
+    robot(i).v_m = odom_m(i).v_x;
+    robot(i).omega_m = odom_m(i).omega;
+    robot(i).t_m = odom_m(i).t;
+end
+
+% Pre-process, outlier reject
+for i = 1:nRobot
+    odom_len = length(odom_m(i).v_x);
+    for j = 1:odom_len
+        if abs(robot(i).v_m(j)) > 1e6
+            disp("Outlier v:");
+            disp(robot(i).v_m(j));
+            robot(i).v_m(j) = robot(i).v_m(j-1);
+        end
+        if abs(robot(i).omega_m(j)) > 1e6
+            disp("Outlier omega:");
+            disp(robot(i).omega_m(j));
+            robot(i).omega_m(j) = robot(i).omega_m(j-1);
+        end
+    end
+end
+
+% plot test
+for i = 1:nRobot
+    figure;
+    subplot(2,3,1);
+    plot(odom_m(i).Delta(:,1));
+    title(['Robot ',num2str(robot(i).id),' Odom dx']);
+    subplot(2,3,2);
+    plot(odom_m(i).Delta(:,2));
+    title('Odom dy');
+    subplot(2,3,3);
+    plot(odom_m(i).Delta(:,3));
+    title('Odom dphi');
+    subplot(2,3,4);
+    plot(odom_m(i).int);
+    title('Odom int');
+    subplot(2,3,5);
+    plot(odom_m(i).t);
+    title('Odom t');
+end
+
 %% Plot Odom data
 if plot_odom_flag 
 figure;
@@ -200,4 +221,7 @@ for r = 1:nUWB
     k = k+2;
 end
 end
+
+%%
+save('data.mat', 'robot', 'range_m');
 
