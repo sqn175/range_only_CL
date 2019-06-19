@@ -2,7 +2,7 @@
 clear all; close all; clc;
 addpath('../Matlab-VerifyData/');
 
-baseDir = '/home/qin/Downloads/res0617/';
+baseDir = '/home/qin/Downloads/res0618/';
 
 fileRCLRes = strcat(baseDir, 'res.txt');
 
@@ -10,7 +10,7 @@ robotIds = [1 3 4]; % 1 red, 3 green, 4 yellow
 colors = {[244, 71, 65]/256, [20, 122, 20]/256, [201, 176, 56]/256};
 
 anchors = [0, 0;
-           1.74851,0];
+           3.6,0];
 %%
 nRobot = length(robotIds);
 Rt = [0, 1.2, 0];
